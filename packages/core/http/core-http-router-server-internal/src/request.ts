@@ -121,14 +121,10 @@ export class CoreKibanaRequest<
   public readonly uuid: string;
   /** {@inheritDoc KibanaRequest.url} */
   public readonly url: URL;
-  /** {@inheritDoc KibanaRequest.route} */
-  public readonly route: RecursiveReadonly<KibanaRequestRoute<Method>>;
   /** {@inheritDoc KibanaRequest.headers} */
   public readonly headers: Headers;
   /** {@inheritDoc KibanaRequest.isSystemRequest} */
   public readonly isSystemRequest: boolean;
-  /** {@inheritDoc KibanaRequest.socket} */
-  public readonly socket: IKibanaSocket;
   /** {@inheritDoc KibanaRequest.events} */
   public readonly events: KibanaRequestEvents;
   /** {@inheritDoc KibanaRequest.auth} */
@@ -139,6 +135,27 @@ export class CoreKibanaRequest<
   public readonly isInternalApiRequest: boolean;
   /** {@inheritDoc KibanaRequest.rewrittenUrl} */
   public readonly rewrittenUrl?: URL;
+
+  #socket?: IKibanaSocket;
+  #route?: RecursiveReadonly<KibanaRequestRoute<Method>>;
+
+  /** {@inheritDoc KibanaRequest.socket} */
+  public get socket(): IKibanaSocket {
+    if (!this.#socket) {
+      this.#socket = isRealRawRequest(this[requestSymbol])
+        ? new KibanaSocket(this[requestSymbol].raw.req.socket)
+        : KibanaSocket.getFakeSocket();
+    }
+    return this.#socket;
+  }
+
+  /** {@inheritDoc KibanaRequest.route} */
+  public get route(): RecursiveReadonly<KibanaRequestRoute<Method>> {
+    if (!this.#route) {
+      this.#route = deepFreeze(this.getRouteInfo(this[requestSymbol]));
+    }
+    return this.#route;
+  }
 
   /** @internal */
   protected readonly [requestSymbol]!: Request;
@@ -173,10 +190,6 @@ export class CoreKibanaRequest<
       enumerable: false,
     });
 
-    this.route = deepFreeze(this.getRouteInfo(request));
-    this.socket = isRealRawRequest(request)
-      ? new KibanaSocket(request.raw.req.socket)
-      : KibanaSocket.getFakeSocket();
     this.events = this.getEvents(request);
 
     this.auth = {
@@ -250,6 +263,7 @@ export class CoreKibanaRequest<
       options,
     };
   }
+
   /** set route access to internal if not declared */
   private getAccess(request: RawRequest): 'internal' | 'public' {
     return (
