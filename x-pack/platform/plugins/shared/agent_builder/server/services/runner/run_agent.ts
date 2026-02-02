@@ -18,6 +18,7 @@ import {
   forkContextForAgentRun,
   createAttachmentsService,
   createToolProvider,
+  createSkillsService,
 } from './utils';
 import type { RunnerManager } from './runner';
 
@@ -42,6 +43,8 @@ export const createAgentHandlerContext = async <TParams = Record<string, unknown
     promptManager,
     stateManager,
     filestore,
+    skillServiceStart,
+    toolManager
   } = manager.deps;
 
   const spaceId = getCurrentSpaceId({ request, spaces });
@@ -70,6 +73,14 @@ export const createAgentHandlerContext = async <TParams = Record<string, unknown
       spaceId,
       runner: manager.getRunner(),
     }),
+    skills: createSkillsService({
+      skillServiceStart: skillServiceStart,
+      toolsServiceStart: toolsService,
+      request,
+      spaceId,
+      runner: manager.getRunner(),
+    }),
+    toolManager,
     events: createAgentEventEmitter({ eventHandler: onEvent, context: manager.context }),
   };
 };
@@ -82,7 +93,6 @@ export const runAgent = async ({
   parentManager: RunnerManager;
 }): Promise<RunAgentReturn> => {
   const { agentId, agentParams, abortSignal } = agentExecutionParams;
-
   const context = forkContextForAgentRun({ parentContext: parentManager.context, agentId });
   const manager = parentManager.createChild(context);
 

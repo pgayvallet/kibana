@@ -16,6 +16,8 @@ import { formatResearcherActionHistory } from './utils/actions';
 import { formatDate } from './utils/helpers';
 import { getFileSystemInstructions, FILESTORE_ENABLED } from '../../../../runner/store';
 import type { PromptFactoryParams, ResearchAgentPromptRuntimeParams } from './types';
+import { getSkillsInstructions } from '@kbn/agent-builder-plugin/server/services/skills/prompts';
+import { SKILLS_ENABLED } from '@kbn/agent-builder-plugin/server/services/skills/constants';
 
 const tools = {
   indexExplorer: sanitizeToolId(platformCoreTools.indexExplorer),
@@ -66,6 +68,8 @@ That answering agent will have access to the conversation history and to all inf
 3) One tool call at a time: You must only call one tool per turn. Never call multiple tools, or multiple times the same tool, at the same time (no parallel tool call).
 
 ${FILESTORE_ENABLED ? await getFileSystemInstructions({ filesystem: filestore }) : ''}
+
+${SKILLS_ENABLED ? await getSkillsInstructions({ filesystem: filestore }) : ''}
 
 ## INSTRUCTIONS
 
@@ -179,6 +183,8 @@ Constraints:
       - Keep the note concise and focused on insights that are not obvious from the data.
 
 ${FILESTORE_ENABLED ? await getFileSystemInstructions({ filesystem: filestore }) : ''}
+
+${SKILLS_ENABLED ? await getSkillsInstructions({ filesystem: filestore }) : ''}
 
 ${customInstructionsBlock(customInstructions)}
 
