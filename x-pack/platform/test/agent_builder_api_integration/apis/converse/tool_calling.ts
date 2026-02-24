@@ -34,49 +34,12 @@ export function createToolCallingTests(executionMode: ExecutionMode) {
       let llmProxy: LlmProxy;
       let connectorId: string;
       let apmSynthtraceEsClient: ApmSynthtraceEsClient;
-      let queryResult: QueryResult;
-      let esqlResults: EsqlResults;
-
-      const USER_PROMPT = 'Please find a single trace with `service.name:java-backend`';
-      const MOCKED_LLM_TITLE = 'Mocked conversation title';
-      const MOCKED_LLM_RESPONSE = 'Mocked LLM response';
-      const MOCKED_ESQL_QUERY =
-        'FROM traces-apm-default\n| WHERE service.name == "java-backend"\n| LIMIT 100';
-
-      let body: ChatResponse;
 
       before(async () => {
         llmProxy = await createLlmProxy(log);
         connectorId = await createLlmProxyActionConnector(getService, { port: llmProxy.getPort() });
         apmSynthtraceEsClient = await synthtrace.createApmSynthtraceEsClient();
         await generateApmData(apmSynthtraceEsClient);
-
-        await setupAgentCallSearchToolWithEsqlThenAnswer({
-          proxy: llmProxy,
-          title: MOCKED_LLM_TITLE,
-          resourceName: 'traces-apm-default',
-          resourceType: 'data_stream',
-          response: MOCKED_LLM_RESPONSE,
-          esqlQuery: MOCKED_ESQL_QUERY,
-        });
-
-        body = await agentBuilderApiClient.converse({
-          input: USER_PROMPT,
-          connector_id: connectorId,
-        });
-
-        await llmProxy.waitForAllInterceptorsToHaveBeenCalled();
-
-        const handoverRequest = llmProxy.interceptedRequests.find(
-          (request) => request.matchingInterceptorName === 'handover-to-answer'
-        )!.requestBody;
-
-        const esqlToolCallMsg = handoverRequest.messages[handoverRequest.messages.length - 1]!;
-
-        expect(esqlToolCallMsg.role).to.eql('tool');
-
-        const toolCallContent = JSON.parse(esqlToolCallMsg?.content as string);
-        [queryResult, esqlResults] = toolCallContent.results as [QueryResult, EsqlResults];
       });
 
       after(async () => {
@@ -85,97 +48,119 @@ export function createToolCallingTests(executionMode: ExecutionMode) {
         await apmSynthtraceEsClient.clean();
       });
 
-      it('sends the correct esql query to the LLM', () => {
-        expect(queryResult.type).to.be('query');
-        expect('esql' in queryResult.data ? queryResult.data.esql : '').to.be(MOCKED_ESQL_QUERY);
-      });
+      describe('single tool call (search with esql)', () => {
+        let queryResult: QueryResult;
+        let esqlResults: EsqlResults;
+        let body: ChatResponse;
 
-      it('sends the correct esql result to the LLM', () => {
-        expect(esqlResults.type).to.be('esql_results');
-        expect(esqlResults).have.property('tool_result_id');
-        expect(esqlResults.data.query).to.be(MOCKED_ESQL_QUERY);
-        expect(esqlResults.data.values).to.have.length(15);
-      });
+        const MOCKED_LLM_RESPONSE = 'Mocked LLM response';
+        const MOCKED_ESQL_QUERY =
+          'FROM traces-apm-default\n| WHERE service.name == "java-backend"\n| LIMIT 100';
 
-      it('returns the response from the LLM', async () => {
-        expect(body.response.message).to.eql(MOCKED_LLM_RESPONSE);
-      });
-    });
+        before(async () => {
+          await setupAgentCallSearchToolWithEsqlThenAnswer({
+            proxy: llmProxy,
+            title: 'Mocked conversation title',
+            resourceName: 'traces-apm-default',
+            resourceType: 'data_stream',
+            response: MOCKED_LLM_RESPONSE,
+            esqlQuery: MOCKED_ESQL_QUERY,
+          });
 
-    describe(`[${executionMode}] parallel tool calling`, () => {
-      let llmProxy: LlmProxy;
-      let connectorId: string;
-      let apmSynthtraceEsClient: ApmSynthtraceEsClient;
+          body = await agentBuilderApiClient.converse({
+            input: 'Please find a single trace with `service.name:java-backend`',
+            connector_id: connectorId,
+          });
 
-      const USER_PROMPT = 'List all indices and get mappings for traces-apm-default';
-      const MOCKED_LLM_TITLE = 'Parallel tool calls';
-      const MOCKED_LLM_RESPONSE = 'Here are the results from both tools';
+          await llmProxy.waitForAllInterceptorsToHaveBeenCalled();
 
-      let body: ChatResponse;
+          const handoverRequest = llmProxy.interceptedRequests.find(
+            (request) => request.matchingInterceptorName === 'handover-to-answer'
+          )!.requestBody;
 
-      before(async () => {
-        llmProxy = await createLlmProxy(log);
-        connectorId = await createLlmProxyActionConnector(getService, { port: llmProxy.getPort() });
-        apmSynthtraceEsClient = await synthtrace.createApmSynthtraceEsClient();
-        await generateApmData(apmSynthtraceEsClient);
+          const esqlToolCallMsg = handoverRequest.messages[handoverRequest.messages.length - 1]!;
 
-        await setupAgentParallelToolCallsThenAnswer({
-          proxy: llmProxy,
-          title: MOCKED_LLM_TITLE,
-          response: MOCKED_LLM_RESPONSE,
-          toolCalls: [
-            { name: 'platform_core_list_indices', args: { pattern: '*' } },
-            {
-              name: 'platform_core_get_index_mapping',
-              args: { indices: ['traces-apm-default'] },
-            },
-          ],
+          expect(esqlToolCallMsg.role).to.eql('tool');
+
+          const toolCallContent = JSON.parse(esqlToolCallMsg?.content as string);
+          [queryResult, esqlResults] = toolCallContent.results as [QueryResult, EsqlResults];
         });
 
-        body = await agentBuilderApiClient.converse({
-          input: USER_PROMPT,
-          connector_id: connectorId,
+        it('sends the correct esql query to the LLM', () => {
+          expect(queryResult.type).to.be('query');
+          expect('esql' in queryResult.data ? queryResult.data.esql : '').to.be(MOCKED_ESQL_QUERY);
         });
 
-        await llmProxy.waitForAllInterceptorsToHaveBeenCalled();
+        it('sends the correct esql result to the LLM', () => {
+          expect(esqlResults.type).to.be('esql_results');
+          expect(esqlResults).have.property('tool_result_id');
+          expect(esqlResults.data.query).to.be(MOCKED_ESQL_QUERY);
+          expect(esqlResults.data.values).to.have.length(15);
+        });
+
+        it('returns the response from the LLM', () => {
+          expect(body.response.message).to.eql(MOCKED_LLM_RESPONSE);
+        });
       });
 
-      after(async () => {
-        llmProxy.close();
-        await deleteActionConnector(getService, { actionId: connectorId });
-        await apmSynthtraceEsClient.clean();
-      });
+      describe('parallel tool calls', () => {
+        let body: ChatResponse;
 
-      it('returns the response from the LLM', () => {
-        expect(body.response.message).to.eql(MOCKED_LLM_RESPONSE);
-      });
+        const MOCKED_LLM_RESPONSE = 'Here are the results from both tools';
 
-      it('returns two tool call steps', () => {
-        const toolCallSteps = body.steps.filter(
-          (step) => step.type === ConversationRoundStepType.toolCall
-        ) as ToolCallStep[];
+        before(async () => {
+          await setupAgentParallelToolCallsThenAnswer({
+            proxy: llmProxy,
+            title: 'Parallel tool calls',
+            response: MOCKED_LLM_RESPONSE,
+            toolCalls: [
+              { name: 'platform_core_list_indices', args: { pattern: '*' } },
+              {
+                name: 'platform_core_get_index_mapping',
+                args: { indices: ['traces-apm-default'] },
+              },
+            ],
+          });
 
-        expect(toolCallSteps).to.have.length(2);
-      });
+          body = await agentBuilderApiClient.converse({
+            input: 'List all indices and get mappings for traces-apm-default',
+            connector_id: connectorId,
+          });
 
-      it('assigns the same tool_call_group_id to both steps', () => {
-        const toolCallSteps = body.steps.filter(
-          (step) => step.type === ConversationRoundStepType.toolCall
-        ) as ToolCallStep[];
+          await llmProxy.waitForAllInterceptorsToHaveBeenCalled();
+        });
 
-        const groupId = toolCallSteps[0].tool_call_group_id;
-        expect(groupId).to.be.a('string');
-        expect(groupId).to.not.be('');
-        expect(toolCallSteps[1].tool_call_group_id).to.eql(groupId);
-      });
+        it('returns the response from the LLM', () => {
+          expect(body.response.message).to.eql(MOCKED_LLM_RESPONSE);
+        });
 
-      it('returns results for both tool calls', () => {
-        const toolCallSteps = body.steps.filter(
-          (step) => step.type === ConversationRoundStepType.toolCall
-        ) as ToolCallStep[];
+        it('returns two tool call steps', () => {
+          const toolCallSteps = body.steps.filter(
+            (step) => step.type === ConversationRoundStepType.toolCall
+          ) as ToolCallStep[];
 
-        expect(toolCallSteps[0].results.length).to.be.greaterThan(0);
-        expect(toolCallSteps[1].results.length).to.be.greaterThan(0);
+          expect(toolCallSteps).to.have.length(2);
+        });
+
+        it('assigns the same tool_call_group_id to both steps', () => {
+          const toolCallSteps = body.steps.filter(
+            (step) => step.type === ConversationRoundStepType.toolCall
+          ) as ToolCallStep[];
+
+          const groupId = toolCallSteps[0].tool_call_group_id;
+          expect(groupId).to.be.a('string');
+          expect(groupId).to.not.be('');
+          expect(toolCallSteps[1].tool_call_group_id).to.eql(groupId);
+        });
+
+        it('returns results for both tool calls', () => {
+          const toolCallSteps = body.steps.filter(
+            (step) => step.type === ConversationRoundStepType.toolCall
+          ) as ToolCallStep[];
+
+          expect(toolCallSteps[0].results.length).to.be.greaterThan(0);
+          expect(toolCallSteps[1].results.length).to.be.greaterThan(0);
+        });
       });
     });
   };
