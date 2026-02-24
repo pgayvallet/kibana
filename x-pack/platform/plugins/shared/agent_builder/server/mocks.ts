@@ -51,6 +51,10 @@ const createStartContractMock = (): AgentBuilderPluginStartMock => {
       register: jest.fn(),
       unregister: jest.fn(),
     },
+    execution: {
+      executeAgent: jest.fn(),
+      getExecution: jest.fn(),
+    },
   };
 };
 

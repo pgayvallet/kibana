@@ -169,12 +169,13 @@ export class AgentBuilderPlugin
       analyticsService: this.analyticsService,
     });
 
-    const { tools, agents, skills, runnerFactory } = startServices;
+    const { tools, agents, skills, runnerFactory, execution } = startServices;
     const runner = runnerFactory.getRunner();
 
     if (this.home) {
       registerSampleData(this.home, this.logger);
     }
+
     return {
       agents: {
         getRegistry: ({ request }) => agents.getRegistry({ request }),
@@ -187,6 +188,10 @@ export class AgentBuilderPlugin
       skills: {
         register: skills.registerSkill.bind(skills),
         unregister: skills.unregisterSkill.bind(skills),
+      },
+      execution: {
+        executeAgent: execution.executeAgent.bind(execution),
+        getExecution: execution.getExecution.bind(execution),
       },
     };
   }

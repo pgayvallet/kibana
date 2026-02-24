@@ -31,6 +31,7 @@ import type { ToolsServiceSetup, ToolRegistry } from './services/tools';
 import type { AgentRegistry } from './services/agents';
 import type { AttachmentServiceSetup } from './services/attachments';
 import type { SkillServiceSetup } from './services/skills';
+import type { AgentExecutionService } from './services/execution';
 
 export interface AgentBuilderSetupDependencies {
   cloud?: CloudSetup;
@@ -142,6 +143,20 @@ export interface AgentBuilderPluginSetup {
 }
 
 /**
+ * AgentBuilder execution service's start contract
+ */
+export interface ExecutionStart {
+  /**
+   * Execute an agent.
+   */
+  executeAgent: AgentExecutionService['executeAgent'];
+  /**
+   * Retrieve an agent execution by its ID.
+   */
+  getExecution: AgentExecutionService['getExecution'];
+}
+
+/**
  * Start contract of the agentBuilder plugin.
  */
 export interface AgentBuilderPluginStart {
@@ -163,4 +178,8 @@ export interface AgentBuilderPluginStart {
    * Skills service, to register or unregister skills dynamically.
    */
   skills: SkillsStart;
+  /**
+   * Execution service, to execute agents and retrieve execution status.
+   */
+  execution: ExecutionStart;
 }
