@@ -5,7 +5,7 @@
  * 2.0.
  */
 
-import type { AIMessageChunk, BaseMessage } from '@langchain/core/messages';
+import type { AIMessageChunk, BaseMessage, ToolMessage } from '@langchain/core/messages';
 import { isToolMessage } from '@langchain/core/messages';
 import { extractTextContent, extractToolCalls } from '@kbn/agent-builder-genai-utils/langchain';
 import { createAgentExecutionError } from '@kbn/agent-builder-common/base/errors';
@@ -68,43 +68,39 @@ export const processToolNodeResponse = (
 ): (ExecuteToolAction | ToolPromptAction)[] => {
   const toolMessages = toolNodeResult.filter(isToolMessage);
 
-  const interruptMessage = toolMessages.find((message) => {
-    const result: ToolHandlerReturn | undefined = message.artifact;
-    return result && isToolHandlerInterruptReturn(result);
-  });
+  const completedMessages: ToolMessage[] = [];
+  const interruptMessages: ToolMessage[] = [];
 
-  if (interruptMessage) {
-    const toolResult: ToolHandlerPromptReturn = interruptMessage.artifact;
-    const completedMessages = toolMessages.filter((msg) => msg !== interruptMessage);
-
-    const actions: (ExecuteToolAction | ToolPromptAction)[] = [];
-
-    if (completedMessages.length > 0) {
-      actions.push(
-        executeToolAction(
-          completedMessages.map((msg) => ({
-            toolCallId: msg.tool_call_id,
-            content: extractTextContent(msg),
-            artifact: msg.artifact,
-          }))
-        )
-      );
+  for (const msg of toolMessages) {
+    const result: ToolHandlerReturn | undefined = msg.artifact;
+    if (result && isToolHandlerInterruptReturn(result)) {
+      interruptMessages.push(msg);
+    } else {
+      completedMessages.push(msg);
     }
-
-    actions.push(toolPromptAction(interruptMessage.tool_call_id, toolResult.prompt));
-
-    return actions;
   }
 
-  return [
-    executeToolAction(
-      toolMessages.map((msg) => ({
-        toolCallId: msg.tool_call_id,
-        content: extractTextContent(msg),
-        artifact: msg.artifact,
-      }))
-    ),
-  ];
+  const actions: (ExecuteToolAction | ToolPromptAction)[] = [];
+
+  if (completedMessages.length > 0) {
+    actions.push(
+      executeToolAction(
+        completedMessages.map((msg) => ({
+          toolCallId: msg.tool_call_id,
+          content: extractTextContent(msg),
+          artifact: msg.artifact,
+        }))
+      )
+    );
+  }
+
+  if (interruptMessages.length > 0) {
+    const firstInterrupt = interruptMessages[0];
+    const toolResult: ToolHandlerPromptReturn = firstInterrupt.artifact;
+    actions.push(toolPromptAction(firstInterrupt.tool_call_id, toolResult.prompt));
+  }
+
+  return actions;
 };
 
 export const processAnswerResponse = (message: AIMessageChunk): AnswerAction | AgentErrorAction => {
