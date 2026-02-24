@@ -32,11 +32,7 @@ function isAttachmentReferencedInRounds(
   attachmentId: string,
   rounds: ConversationRound[]
 ): boolean {
-  const attachmentToolIds = [
-    attachmentTools.read,
-    attachmentTools.update,
-    attachmentTools.diff,
-  ];
+  const attachmentToolIds = [attachmentTools.read, attachmentTools.update, attachmentTools.diff];
 
   for (const round of rounds) {
     for (const step of round.steps) {
