@@ -60,5 +60,7 @@ export const createMockedInternalAgent = (
 export const createAgentsServiceStartMock = (): AgentsServiceStartMock => {
   return {
     getRegistry: jest.fn().mockImplementation(() => createMockedAgentRegistry()),
+    removeToolRefsFromAgents: jest.fn(),
+    getAgentsUsingTools: jest.fn(),
   };
 };
