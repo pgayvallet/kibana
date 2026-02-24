@@ -9,8 +9,12 @@ import expect from '@kbn/expect';
 import type { ChatResponse } from '@kbn/agent-builder-plugin/common/http_api/chat';
 import type { ApmSynthtraceEsClient } from '@kbn/synthtrace';
 import { apm, timerange } from '@kbn/synthtrace-client';
-import type { QueryResult, EsqlResults } from '@kbn/agent-builder-common';
-import { setupAgentCallSearchToolWithEsqlThenAnswer } from '../../utils/proxy_scenario';
+import type { QueryResult, EsqlResults, ToolCallStep } from '@kbn/agent-builder-common';
+import { ConversationRoundStepType } from '@kbn/agent-builder-common';
+import {
+  setupAgentCallSearchToolWithEsqlThenAnswer,
+  setupAgentParallelToolCallsThenAnswer,
+} from '../../utils/proxy_scenario';
 import { createLlmProxy, type LlmProxy } from '../../utils/llm_proxy';
 import {
   createLlmProxyActionConnector,
@@ -95,6 +99,83 @@ export function createToolCallingTests(executionMode: ExecutionMode) {
 
       it('returns the response from the LLM', async () => {
         expect(body.response.message).to.eql(MOCKED_LLM_RESPONSE);
+      });
+    });
+
+    describe(`[${executionMode}] parallel tool calling`, () => {
+      let llmProxy: LlmProxy;
+      let connectorId: string;
+      let apmSynthtraceEsClient: ApmSynthtraceEsClient;
+
+      const USER_PROMPT = 'List all indices and get mappings for traces-apm-default';
+      const MOCKED_LLM_TITLE = 'Parallel tool calls';
+      const MOCKED_LLM_RESPONSE = 'Here are the results from both tools';
+
+      let body: ChatResponse;
+
+      before(async () => {
+        llmProxy = await createLlmProxy(log);
+        connectorId = await createLlmProxyActionConnector(getService, { port: llmProxy.getPort() });
+        apmSynthtraceEsClient = await synthtrace.createApmSynthtraceEsClient();
+        await generateApmData(apmSynthtraceEsClient);
+
+        await setupAgentParallelToolCallsThenAnswer({
+          proxy: llmProxy,
+          title: MOCKED_LLM_TITLE,
+          response: MOCKED_LLM_RESPONSE,
+          toolCalls: [
+            { name: 'platform_core_list_indices', args: { pattern: '*' } },
+            {
+              name: 'platform_core_get_index_mapping',
+              args: { indices: ['traces-apm-default'] },
+            },
+          ],
+        });
+
+        body = await agentBuilderApiClient.converse({
+          input: USER_PROMPT,
+          connector_id: connectorId,
+        });
+
+        await llmProxy.waitForAllInterceptorsToHaveBeenCalled();
+      });
+
+      after(async () => {
+        llmProxy.close();
+        await deleteActionConnector(getService, { actionId: connectorId });
+        await apmSynthtraceEsClient.clean();
+      });
+
+      it('returns the response from the LLM', () => {
+        expect(body.response.message).to.eql(MOCKED_LLM_RESPONSE);
+      });
+
+      it('returns two tool call steps', () => {
+        const toolCallSteps = body.steps.filter(
+          (step) => step.type === ConversationRoundStepType.toolCall
+        ) as ToolCallStep[];
+
+        expect(toolCallSteps).to.have.length(2);
+      });
+
+      it('assigns the same tool_call_group_id to both steps', () => {
+        const toolCallSteps = body.steps.filter(
+          (step) => step.type === ConversationRoundStepType.toolCall
+        ) as ToolCallStep[];
+
+        const groupId = toolCallSteps[0].tool_call_group_id;
+        expect(groupId).to.be.a('string');
+        expect(groupId).to.not.be('');
+        expect(toolCallSteps[1].tool_call_group_id).to.eql(groupId);
+      });
+
+      it('returns results for both tool calls', () => {
+        const toolCallSteps = body.steps.filter(
+          (step) => step.type === ConversationRoundStepType.toolCall
+        ) as ToolCallStep[];
+
+        expect(toolCallSteps[0].results.length).to.be.greaterThan(0);
+        expect(toolCallSteps[1].results.length).to.be.greaterThan(0);
       });
     });
   };
