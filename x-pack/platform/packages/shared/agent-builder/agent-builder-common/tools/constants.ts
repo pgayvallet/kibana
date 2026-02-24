@@ -30,12 +30,14 @@ export const platformCoreTools = {
   productDocumentation: platformCoreTool('product_documentation'),
   cases: platformCoreTool('cases'),
   integrationKnowledge: platformCoreTool('integration_knowledge'),
-  // Attachment tools
-  attachmentRead: platformCoreTool('attachment_read'),
-  attachmentUpdate: platformCoreTool('attachment_update'),
-  attachmentAdd: platformCoreTool('attachment_add'),
-  attachmentList: platformCoreTool('attachment_list'),
-  attachmentDiff: platformCoreTool('attachment_diff'),
+} as const;
+
+export const attachmentTools = {
+  read: `${internalNamespaces.attachments}.read`,
+  update: `${internalNamespaces.attachments}.update`,
+  add: `${internalNamespaces.attachments}.add`,
+  list: `${internalNamespaces.attachments}.list`,
+  diff: `${internalNamespaces.attachments}.diff`,
 } as const;
 
 export const filestoreTools = {
