@@ -81,7 +81,6 @@ export const createBrowserToolCallEvent = (data: {
   toolCallId: string;
   toolId: string;
   params: Record<string, unknown>;
-  toolCallGroupId?: string;
 }): BrowserToolCallEvent => {
   return {
     type: ChatEventType.browserToolCall,

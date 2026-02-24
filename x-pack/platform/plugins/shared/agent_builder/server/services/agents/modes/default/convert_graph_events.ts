@@ -130,7 +130,6 @@ export const convertGraphEvents = ({
                       toolId: toolId.replace(BROWSER_TOOL_PREFIX, ''),
                       toolCallId,
                       params: toolCallArgs,
-                      toolCallGroupId,
                     })
                   );
                 } else {
