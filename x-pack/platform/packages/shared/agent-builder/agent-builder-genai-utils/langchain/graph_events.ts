@@ -56,7 +56,7 @@ export const createToolCallEvent = (data: {
       tool_call_id: data.toolCallId,
       tool_id: data.toolId,
       params: data.params,
-      ...(data.toolCallGroupId ? { tool_call_group_id: data.toolCallGroupId } : {}),
+      tool_call_group_id: data.toolCallGroupId,
     },
   };
 };
