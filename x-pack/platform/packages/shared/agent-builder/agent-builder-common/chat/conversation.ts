@@ -115,6 +115,11 @@ export interface ToolCallWithResult {
    * Result of the tool
    */
   results: ToolResult[];
+  /**
+   * Optional group ID shared by tool calls that were executed in parallel
+   * from the same LLM response. Used to reconstruct correct message history.
+   */
+  tool_call_group_id?: string;
 }
 
 export type ToolCallStep = ConversationRoundStepMixin<

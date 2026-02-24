@@ -53,11 +53,19 @@ export const processResearchResponse = (
 };
 
 /**
- * Create execute tool action based on the tool node result.
+ * Create execute tool action(s) based on the tool node result.
+ *
+ * When parallel tool calls are used and one tool triggers a HITL interrupt:
+ * - Completed tools are returned as an `ExecuteToolAction`
+ * - The first interrupted tool is returned as a `ToolPromptAction`
+ *
+ * NOTE: If multiple tools trigger HITL in the same batch, only the first
+ * interrupt is handled. The others are discarded. This is an accepted
+ * limitation for the first iteration of parallel tool call support.
  */
 export const processToolNodeResponse = (
   toolNodeResult: BaseMessage[]
-): ExecuteToolAction | ToolPromptAction => {
+): (ExecuteToolAction | ToolPromptAction)[] => {
   const toolMessages = toolNodeResult.filter(isToolMessage);
 
   const interruptMessage = toolMessages.find((message) => {
@@ -67,18 +75,36 @@ export const processToolNodeResponse = (
 
   if (interruptMessage) {
     const toolResult: ToolHandlerPromptReturn = interruptMessage.artifact;
-    return toolPromptAction(interruptMessage.tool_call_id, toolResult.prompt);
+    const completedMessages = toolMessages.filter((msg) => msg !== interruptMessage);
+
+    const actions: (ExecuteToolAction | ToolPromptAction)[] = [];
+
+    if (completedMessages.length > 0) {
+      actions.push(
+        executeToolAction(
+          completedMessages.map((msg) => ({
+            toolCallId: msg.tool_call_id,
+            content: extractTextContent(msg),
+            artifact: msg.artifact,
+          }))
+        )
+      );
+    }
+
+    actions.push(toolPromptAction(interruptMessage.tool_call_id, toolResult.prompt));
+
+    return actions;
   }
 
-  return executeToolAction(
-    toolMessages.map((msg) => {
-      return {
+  return [
+    executeToolAction(
+      toolMessages.map((msg) => ({
         toolCallId: msg.tool_call_id,
         content: extractTextContent(msg),
         artifact: msg.artifact,
-      };
-    })
-  );
+      }))
+    ),
+  ];
 };
 
 export const processAnswerResponse = (message: AIMessageChunk): AnswerAction | AgentErrorAction => {
