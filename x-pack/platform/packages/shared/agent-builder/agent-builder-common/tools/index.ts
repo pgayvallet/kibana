@@ -14,6 +14,9 @@ export {
   activeToolsCountWarningThreshold,
   defaultAgentToolIds,
   editableToolTypes,
+  isInternalTool,
+  isAttachmentTool,
+  isFilestoreTool,
 } from './constants';
 export {
   type ByIdsToolSelection,

@@ -47,6 +47,15 @@ export const filestoreTools = {
   glob: `${internalNamespaces.filestore}.glob`,
 };
 
+export const isAttachmentTool = (toolName: string) =>
+  (Object.values(attachmentTools) as string[]).includes(toolName);
+
+export const isFilestoreTool = (toolName: string) =>
+  (Object.values(filestoreTools) as string[]).includes(toolName);
+
+export const isInternalTool = (toolName: string) =>
+  isAttachmentTool(toolName) || isFilestoreTool(toolName);
+
 /**
  * List of tool types which can be created / edited by a user.
  */
