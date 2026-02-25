@@ -65,13 +65,11 @@ export class ToolManager implements IToolManager {
 
     if (input.type === 'executable') {
       const tools = Array.isArray(input.tools) ? input.tools : [input.tools];
-
       for (const tool of tools) {
         this.executableTools.set(tool.id, tool);
       }
 
       const toolIdMapping = createToolIdMappings(tools);
-
       langchainTools = await Promise.all(
         tools.map((tool) =>
           toolToLangchain({
