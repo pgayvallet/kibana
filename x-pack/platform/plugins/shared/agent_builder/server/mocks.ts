@@ -47,10 +47,6 @@ const createStartContractMock = (): AgentBuilderPluginStartMock => {
       execute: jest.fn(),
       getRegistry: jest.fn().mockImplementation(() => createToolRegistryMock()),
     },
-    skills: {
-      register: jest.fn(),
-      unregister: jest.fn(),
-    },
     execution: {
       executeAgent: jest.fn(),
       getExecution: jest.fn(),
