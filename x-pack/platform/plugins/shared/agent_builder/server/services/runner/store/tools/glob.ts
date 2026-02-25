@@ -28,7 +28,6 @@ export const globTool = ({
     type: ToolType.builtin,
     schema,
     tags: ['filestore'],
-    excludeFromFilestore: true,
     summarizeToolReturn: summarizeFilestoreToolReturn,
     handler: async ({ pattern }, context) => {
       const entries = await filestore.glob(pattern);

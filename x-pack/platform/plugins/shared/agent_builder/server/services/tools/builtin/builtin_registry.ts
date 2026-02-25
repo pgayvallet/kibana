@@ -32,11 +32,6 @@ class BuiltinToolRegistryImpl implements BuiltinToolRegistry {
     if (errorMessage) {
       throw new Error(`Invalid tool id: "${tool.id}": ${errorMessage}`);
     }
-    if (tool.excludeFromFilestore && !tool.summarizeToolReturn) {
-      throw new Error(
-        `Tool "${tool.id}" has excludeFromFilestore=true but no summarizeToolReturn defined`
-      );
-    }
     this.tools.set(tool.id, tool);
   }
 

@@ -39,7 +39,6 @@ export const grepTool = ({
     type: ToolType.builtin,
     schema,
     tags: ['filestore'],
-    excludeFromFilestore: true,
     summarizeToolReturn: summarizeFilestoreToolReturn,
     handler: async ({ pattern, globPattern, context, fixed }, ctx) => {
       const matches = await filestore.grep(pattern, globPattern, { context, fixed });

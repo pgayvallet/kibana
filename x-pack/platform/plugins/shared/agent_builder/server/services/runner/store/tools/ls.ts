@@ -39,7 +39,6 @@ export const lsTool = ({
     type: ToolType.builtin,
     schema,
     tags: ['filestore'],
-    excludeFromFilestore: true,
     summarizeToolReturn: summarizeFilestoreToolReturn,
     handler: async ({ path, depth }, context) => {
       const entries = await filestore.ls(path, { depth });

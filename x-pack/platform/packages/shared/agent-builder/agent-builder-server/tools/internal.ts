@@ -52,10 +52,6 @@ export interface InternalToolDefinition<
    * Tool call policy to control tool call confirmation behavior
    */
   confirmation?: ToolConfirmationPolicy;
-  /**
-   * When true, results from this tool will not be stored in the filestore.
-   */
-  excludeFromFilestore?: boolean;
 }
 
 export type InternalToolAvailabilityHandler = (

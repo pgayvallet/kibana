@@ -58,7 +58,6 @@ export const createAttachmentListTool = ({
       ],
     };
   },
-  excludeFromFilestore: true,
   summarizeToolReturn: (toolReturn) => {
     if (toolReturn.results.length === 0) return undefined;
     const result = toolReturn.results[0];

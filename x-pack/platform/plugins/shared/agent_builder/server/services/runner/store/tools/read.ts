@@ -43,7 +43,6 @@ export const readTool = ({
     type: ToolType.builtin,
     schema,
     tags: ['filestore'],
-    excludeFromFilestore: true,
     summarizeToolReturn: summarizeFilestoreToolReturn,
     handler: async (
       { path, raw },

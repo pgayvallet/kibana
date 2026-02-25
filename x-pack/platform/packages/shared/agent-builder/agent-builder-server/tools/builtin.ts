@@ -94,12 +94,6 @@ export interface BuiltInToolSpecificConfig {
    * This helps prevent context bloat in long conversations.
    */
   summarizeToolReturn?: ToolReturnSummarizerFn;
-  /**
-   * When true, results from this tool will not be stored in the filestore.
-   * Tools with this flag must also define {@link summarizeToolReturn} to provide
-   * a placeholder for the removed results in conversation history.
-   */
-  excludeFromFilestore?: boolean;
 }
 
 /**

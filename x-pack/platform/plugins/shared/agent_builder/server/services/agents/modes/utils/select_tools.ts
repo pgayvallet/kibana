@@ -176,7 +176,6 @@ const builtinToolToExecutable = ({
           configuration: {},
           readonly: true,
           confirmation: { askUser: 'never' },
-          excludeFromFilestore: tool.excludeFromFilestore,
           isAvailable: async () => ({ status: 'available' as const }),
           getSchema: () => tool.schema,
           getHandler: () => tool.handler,
