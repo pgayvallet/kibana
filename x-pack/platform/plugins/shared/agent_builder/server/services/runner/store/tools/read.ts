@@ -17,7 +17,7 @@ import {
 } from '@kbn/agent-builder-genai-utils/tools/utils/token_count';
 import { isSkillFileEntry } from '../volumes/skills/utils';
 import { loadSkillTools } from '../utils/load_skill';
-import { summarizeFilestoreToolReturn } from './summarize';
+import { summarizeFilestoreToolReturn } from './utils';
 
 const schema = z.object({
   path: z.string().describe('Path of the file to read'),

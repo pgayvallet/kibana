@@ -15,7 +15,7 @@ import type {
   LsEntry,
   FileEntryMetadata,
 } from '@kbn/agent-builder-server/runner/filestore';
-import { summarizeFilestoreToolReturn } from './summarize';
+import { summarizeFilestoreToolReturn } from './utils';
 
 const schema = z.object({
   path: z.string().describe('Path of the directory to list'),
