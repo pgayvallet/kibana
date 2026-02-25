@@ -64,7 +64,8 @@ export const processResearchResponse = (
  * limitation for the first iteration of parallel tool call support.
  */
 export const processToolNodeResponse = (
-  toolNodeResult: BaseMessage[]
+  toolNodeResult: BaseMessage[],
+  { logger }: { logger?: Logger } = {}
 ): (ExecuteToolAction | ToolPromptAction)[] => {
   const toolMessages = toolNodeResult.filter(isToolMessage);
 
@@ -98,6 +99,9 @@ export const processToolNodeResponse = (
     const firstInterrupt = interruptMessages[0];
     const toolResult: ToolHandlerPromptReturn = firstInterrupt.artifact;
     actions.push(toolPromptAction(firstInterrupt.tool_call_id, toolResult.prompt));
+    if (interruptMessages.length > 1) {
+      logger?.warn(`[agent] Tool execution: Found multiple tool interrupts in the same batch.`);
+    }
   }
 
   return actions;

@@ -147,7 +147,7 @@ export const createAgentGraph = ({
 
     const toolCallMessage = createToolCallMessage(lastAction.tool_calls, lastAction.message);
     const toolNodeResult = await toolNode.invoke([toolCallMessage], {});
-    const actions = processToolNodeResponse(toolNodeResult);
+    const actions = processToolNodeResponse(toolNodeResult, { logger });
 
     return {
       mainActions: actions,
