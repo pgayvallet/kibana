@@ -49,6 +49,7 @@ export const convertTool = ({
       getSchema: () => tool.schema,
       getHandler: () => tool.handler,
       summarizeToolReturn: tool.summarizeToolReturn,
+      excludeFromFilestore: tool.excludeFromFilestore,
     };
   }
   if (!isBuiltinDefinition(definition)) {

@@ -183,7 +183,7 @@ export const runInternalTool = async <TParams = Record<string, unknown>>({
   const afterToolHooksResult = await hooks.run(HookLifecycle.afterToolCall, postContext);
   runToolReturn = afterToolHooksResult.toolReturn;
 
-  if (runToolReturn.results) {
+  if (runToolReturn.results && !tool.excludeFromFilestore) {
     runToolReturn.results.forEach((result) => {
       resultStore.add({
         tool_id: tool.id,

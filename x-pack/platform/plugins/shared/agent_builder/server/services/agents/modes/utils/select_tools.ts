@@ -164,6 +164,7 @@ const builtinToolToExecutable = ({
     configuration: {},
     readonly: true,
     getSchema: () => tool.schema,
+    summarizeToolReturn: tool.summarizeToolReturn,
     execute: async (params) => {
       return runner.runInternalTool({
         ...params,
@@ -175,6 +176,7 @@ const builtinToolToExecutable = ({
           configuration: {},
           readonly: true,
           confirmation: { askUser: 'never' },
+          excludeFromFilestore: tool.excludeFromFilestore,
           isAvailable: async () => ({ status: 'available' as const }),
           getSchema: () => tool.schema,
           getHandler: () => tool.handler,

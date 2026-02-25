@@ -15,6 +15,7 @@ import type {
   LsEntry,
   FileEntryMetadata,
 } from '@kbn/agent-builder-server/runner/filestore';
+import { summarizeFilestoreToolReturn } from './summarize';
 
 const schema = z.object({
   path: z.string().describe('Path of the directory to list'),
@@ -38,6 +39,8 @@ export const lsTool = ({
     type: ToolType.builtin,
     schema,
     tags: ['filestore'],
+    excludeFromFilestore: true,
+    summarizeToolReturn: summarizeFilestoreToolReturn,
     handler: async ({ path, depth }, context) => {
       const entries = await filestore.ls(path, { depth });
       const summaries = entries.map(stripContent);
