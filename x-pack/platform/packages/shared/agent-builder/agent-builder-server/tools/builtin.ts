@@ -87,6 +87,19 @@ export interface BuiltInToolSpecificConfig {
    * Optional tool call policy to control tool call confirmation behavior
    */
   confirmation?: ToolConfirmationPolicy;
+  /**
+   * Optional function to summarize a tool return for conversation history.
+   * When provided, this function will be called when processing conversation history
+   * to replace large tool results with compact summaries.
+   * This helps prevent context bloat in long conversations.
+   */
+  summarizeToolReturn?: ToolReturnSummarizerFn;
+  /**
+   * When true, results from this tool will not be stored in the filestore.
+   * Tools with this flag must also define {@link summarizeToolReturn} to provide
+   * a placeholder for the removed results in conversation history.
+   */
+  excludeFromFilestore?: boolean;
 }
 
 /**
@@ -127,19 +140,6 @@ export interface BuiltinToolDefinition<RunInput extends ZodObject<any> = ZodObje
    * Refer to {@link ToolAvailabilityConfig}
    */
   availability?: ToolAvailabilityConfig;
-  /**
-   * Optional function to summarize a tool return for conversation history.
-   * When provided, this function will be called when processing conversation history
-   * to replace large tool results with compact summaries.
-   * This helps prevent context bloat in long conversations.
-   */
-  summarizeToolReturn?: ToolReturnSummarizerFn;
-  /**
-   * When true, results from this tool will not be stored in the filestore.
-   * Tools with this flag must also define {@link summarizeToolReturn} to provide
-   * a placeholder for the removed results in conversation history.
-   */
-  excludeFromFilestore?: boolean;
 }
 
 type StaticToolRegistrationMixin<T extends ToolDefinition> = Omit<T, 'readonly'> &
