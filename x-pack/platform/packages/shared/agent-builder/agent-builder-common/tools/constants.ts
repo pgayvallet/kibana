@@ -38,7 +38,7 @@ export const attachmentTools = {
   add: `${internalNamespaces.attachments}.add`,
   list: `${internalNamespaces.attachments}.list`,
   diff: `${internalNamespaces.attachments}.diff`,
-} as const;
+};
 
 export const filestoreTools = {
   read: `${internalNamespaces.filestore}.read`,
@@ -48,10 +48,10 @@ export const filestoreTools = {
 };
 
 export const isAttachmentTool = (toolName: string) =>
-  (Object.values(attachmentTools) as string[]).includes(toolName);
+  Object.values(attachmentTools).includes(toolName);
 
 export const isFilestoreTool = (toolName: string) =>
-  (Object.values(filestoreTools) as string[]).includes(toolName);
+  Object.values(filestoreTools).includes(toolName);
 
 export const isInternalTool = (toolName: string) =>
   isAttachmentTool(toolName) || isFilestoreTool(toolName);
