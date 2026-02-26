@@ -243,7 +243,7 @@ export const createToolHandlerContext = async <TParams = Record<string, unknown>
     }),
     resultStore: resultStore.asReadonly(),
     attachments: attachmentStateManager,
-    skills: createSkillsService({
+    skills: await createSkillsService({
       skillServiceStart,
       toolsServiceStart: toolsService,
       request,
