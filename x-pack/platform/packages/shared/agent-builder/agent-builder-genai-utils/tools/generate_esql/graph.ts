@@ -55,14 +55,10 @@ export const createNlToEsqlGraph = ({
   model,
   esClient,
   docBase,
-  logger,
-  events,
 }: {
   model: ScopedModel;
   esClient: ElasticsearchClient;
   docBase: EsqlDocumentBase;
-  logger?: Logger;
-  events?: ToolEventEmitter;
 }) => {
   // resolve the search target / generate sampling data
   const resolveTarget = async (state: StateType) => {
