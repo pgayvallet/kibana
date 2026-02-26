@@ -14,6 +14,9 @@ export const usageApiPluginMock = {
         enabled: false,
         ...configOverride,
       },
+      usageReporting: {
+        reportUsage: jest.fn(),
+      },
     };
   },
 };

@@ -15,6 +15,10 @@ import { UsageReportingService } from './usage_reporting';
  */
 export interface UsageApiSetup {
   /**
+   * Configuration for the Usage API.
+   */
+  config: UsageApiConfigType;
+  /**
    * Usage reporting service for reporting usage metrics.
    * Only exposed if usage reporting is enabled and available.
    */
@@ -53,6 +57,11 @@ export class UsageApiPlugin implements Plugin<UsageApiSetup, UsageApiStart> {
       });
     }
     return {
+      config: {
+        enabled: this.config.enabled && !!this.config.url,
+        url: this.config.url,
+        tls: this.config.tls,
+      },
       usageReporting: this.usageReporting,
     };
   }
