@@ -6,6 +6,7 @@
  */
 
 import type { UsageApiConfigType } from './config';
+import type { UsageReportingService } from './usage_reporting';
 
 export const usageApiPluginMock = {
   createSetupContract: (configOverride: Partial<UsageApiConfigType> = {}) => {
@@ -16,7 +17,7 @@ export const usageApiPluginMock = {
       },
       usageReporting: {
         reportUsage: jest.fn(),
-      },
+      } as unknown as jest.Mocked<UsageReportingService>,
     };
   },
 };
