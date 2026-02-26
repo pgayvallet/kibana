@@ -12,6 +12,7 @@
     "@kbn/config-schema",
     "@kbn/logging",
     "@kbn/server-http-tools",
+    "@kbn/logging-mocks",
   ],
   "exclude": [
     "target/**/*",
