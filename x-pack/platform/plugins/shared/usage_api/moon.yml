@@ -20,6 +20,8 @@ project:
 dependsOn:
   - '@kbn/core'
   - '@kbn/config-schema'
+  - '@kbn/logging'
+  - '@kbn/server-http-tools'
 tags:
   - plugin
   - prod
