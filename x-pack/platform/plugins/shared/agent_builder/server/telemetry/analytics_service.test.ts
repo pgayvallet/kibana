@@ -330,20 +330,17 @@ describe('AnalyticsService', () => {
         duration: 200,
       });
 
-      expect(analytics.reportEvent).toHaveBeenCalledWith(
-        AGENT_BUILDER_EVENT_TYPES.ToolCallError,
-        {
-          agent_id: agentBuilderDefaultAgentId,
-          conversation_id: undefined,
-          tool_id: 'custom-3c9388baa67aef90',
-          tool_call_id: 'tc-1',
-          source: 'agent',
-          model_provider: undefined,
-          error_type: 'tool_error',
-          error_message: 'Something went wrong',
-          duration: 200,
-        }
-      );
+      expect(analytics.reportEvent).toHaveBeenCalledWith(AGENT_BUILDER_EVENT_TYPES.ToolCallError, {
+        agent_id: agentBuilderDefaultAgentId,
+        conversation_id: undefined,
+        tool_id: 'custom-3c9388baa67aef90',
+        tool_call_id: 'tc-1',
+        source: 'agent',
+        model_provider: undefined,
+        error_type: 'tool_error',
+        error_message: 'Something went wrong',
+        duration: 200,
+      });
     });
 
     it('truncates error_message to 500 characters', () => {
