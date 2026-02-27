@@ -77,22 +77,17 @@ export class UsageReportingService {
           return;
         }
 
-        lastError = new Error(`Usage API responded with status ${response.status}`);
-        this.logger.warn(
-          `Metering report attempt ${attempt + 1}/${METERING_RETRY_ATTEMPTS} failed: ${
-            lastError.message
-          }`
-        );
+        throw new Error(`Usage API responded with status ${response.status}`);
       } catch (err) {
         lastError = err instanceof Error ? err : new Error(String(err));
-        this.logger.warn(
-          `Metering report attempt ${attempt + 1}/${METERING_RETRY_ATTEMPTS} failed: ${
-            lastError.message
-          }`
-        );
       }
 
-      // Exponential backoff before next retry (skip delay on last attempt)
+      this.logger.warn(
+        `Metering report attempt ${attempt + 1}/${METERING_RETRY_ATTEMPTS} failed: ${
+          lastError.message
+        }`
+      );
+
       if (attempt < METERING_RETRY_ATTEMPTS - 1) {
         await delay(METERING_RETRY_BASE_DELAY_MS * Math.pow(2, attempt));
       }
@@ -112,7 +107,7 @@ export class UsageReportingService {
     };
 
     if (this.usageApiUrl.startsWith('https')) {
-      reqArgs.agent = this.httpAgent;
+      reqArgs.agent = this.httpsAgent;
     }
 
     return fetch(this.usageApiUrl, reqArgs);
@@ -126,7 +121,7 @@ export class UsageReportingService {
     return url;
   }
 
-  private get httpAgent(): https.Agent {
+  private get httpsAgent(): https.Agent {
     if (this.agent) {
       return this.agent;
     }
