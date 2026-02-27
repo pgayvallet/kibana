@@ -90,22 +90,22 @@ export interface ReportToolCreatedParams {
 }
 
 export interface ReportToolCallSuccessParams {
-  agent_id: string;
-  conversation_id?: string;
   tool_id: string;
   tool_call_id: string;
   source: string;
+  agent_id?: string;
+  conversation_id?: string;
   model?: string;
   result_types: string[];
   duration: number;
 }
 
 export interface ReportToolCallErrorParams {
-  agent_id: string;
-  conversation_id?: string;
   tool_id: string;
   tool_call_id: string;
   source: string;
+  agent_id?: string;
+  conversation_id?: string;
   model?: string;
   error_type: string;
   error_message: string;

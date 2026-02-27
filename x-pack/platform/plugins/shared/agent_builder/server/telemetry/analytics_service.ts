@@ -194,7 +194,7 @@ export class AnalyticsService {
   }): void {
     try {
       this.analytics.reportEvent(AGENT_BUILDER_EVENT_TYPES.ToolCallSuccess, {
-        agent_id: normalizeAgentIdForTelemetry(agentId) ?? 'unknown',
+        agent_id: normalizeAgentIdForTelemetry(agentId),
         conversation_id: conversationId,
         tool_id: normalizeToolIdForTelemetry(toolId),
         tool_call_id: toolCallId,
@@ -228,7 +228,7 @@ export class AnalyticsService {
   }): void {
     try {
       this.analytics.reportEvent(AGENT_BUILDER_EVENT_TYPES.ToolCallError, {
-        agent_id: normalizeAgentIdForTelemetry(agentId) ?? 'unknown',
+        agent_id: normalizeAgentIdForTelemetry(agentId),
         conversation_id: conversationId,
         tool_id: normalizeToolIdForTelemetry(toolId),
         tool_call_id: toolCallId,
