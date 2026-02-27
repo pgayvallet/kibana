@@ -20,6 +20,8 @@ export const AGENT_BUILDER_EVENT_TYPES = {
   ToolCreated: `${TELEMETRY_PREFIX}_tool_created`,
   RoundComplete: `${TELEMETRY_PREFIX}_round_complete`,
   RoundError: `${TELEMETRY_PREFIX}_round_error`,
+  ToolCallSuccess: `${TELEMETRY_PREFIX}_tool_call_success`,
+  ToolCallError: `${TELEMETRY_PREFIX}_tool_call_error`,
 } as const;
 
 export type OptInSource = 'security_settings_menu' | 'stack_management' | 'security_ab_tour';
@@ -87,6 +89,29 @@ export interface ReportToolCreatedParams {
   tool_type: string;
 }
 
+export interface ReportToolCallSuccessParams {
+  agent_id: string;
+  conversation_id?: string;
+  tool_id: string;
+  tool_call_id: string;
+  source: string;
+  model_provider?: string;
+  result_types: string[];
+  duration: number;
+}
+
+export interface ReportToolCallErrorParams {
+  agent_id: string;
+  conversation_id?: string;
+  tool_id: string;
+  tool_call_id: string;
+  source: string;
+  model_provider?: string;
+  error_type: string;
+  error_message: string;
+  duration: number;
+}
+
 export interface AgentBuilderTelemetryEventsMap {
   [AGENT_BUILDER_EVENT_TYPES.OptInAction]: ReportOptInActionParams;
   [AGENT_BUILDER_EVENT_TYPES.OptOut]: ReportOptOutParams;
@@ -96,6 +121,8 @@ export interface AgentBuilderTelemetryEventsMap {
   [AGENT_BUILDER_EVENT_TYPES.ToolCreated]: ReportToolCreatedParams;
   [AGENT_BUILDER_EVENT_TYPES.RoundComplete]: ReportRoundCompleteParams;
   [AGENT_BUILDER_EVENT_TYPES.RoundError]: ReportRoundErrorParams;
+  [AGENT_BUILDER_EVENT_TYPES.ToolCallSuccess]: ReportToolCallSuccessParams;
+  [AGENT_BUILDER_EVENT_TYPES.ToolCallError]: ReportToolCallErrorParams;
 }
 
 export type AgentBuilderTelemetryEvent =
@@ -106,7 +133,9 @@ export type AgentBuilderTelemetryEvent =
   | EventTypeOpts<ReportAgentUpdatedParams>
   | EventTypeOpts<ReportToolCreatedParams>
   | EventTypeOpts<ReportRoundCompleteParams>
-  | EventTypeOpts<ReportRoundErrorParams>;
+  | EventTypeOpts<ReportRoundErrorParams>
+  | EventTypeOpts<ReportToolCallSuccessParams>
+  | EventTypeOpts<ReportToolCallErrorParams>;
 // Type union of all event type strings for use in union types
 export type AgentBuilderEventTypes =
   | typeof AGENT_BUILDER_EVENT_TYPES.OptInAction
@@ -116,7 +145,9 @@ export type AgentBuilderEventTypes =
   | typeof AGENT_BUILDER_EVENT_TYPES.AgentUpdated
   | typeof AGENT_BUILDER_EVENT_TYPES.ToolCreated
   | typeof AGENT_BUILDER_EVENT_TYPES.RoundComplete
-  | typeof AGENT_BUILDER_EVENT_TYPES.RoundError;
+  | typeof AGENT_BUILDER_EVENT_TYPES.RoundError
+  | typeof AGENT_BUILDER_EVENT_TYPES.ToolCallSuccess
+  | typeof AGENT_BUILDER_EVENT_TYPES.ToolCallError;
 
 const OPT_IN_EVENT: AgentBuilderTelemetryEvent = {
   eventType: AGENT_BUILDER_EVENT_TYPES.OptInAction,
@@ -442,6 +473,147 @@ const ROUND_ERROR_EVENT: AgentBuilderTelemetryEvent = {
   schema: ROUND_ERROR_SCHEMA,
 };
 
+const TOOL_CALL_SUCCESS_EVENT: AgentBuilderTelemetryEvent = {
+  eventType: AGENT_BUILDER_EVENT_TYPES.ToolCallSuccess,
+  schema: {
+    agent_id: {
+      type: 'keyword',
+      _meta: {
+        description:
+          'ID of the agent (normalized: built-in agents keep ID, custom agents become "custom-<sha256_prefix>")',
+        optional: false,
+      },
+    },
+    conversation_id: {
+      type: 'keyword',
+      _meta: {
+        description: 'Conversation ID',
+        optional: true,
+      },
+    },
+    tool_id: {
+      type: 'keyword',
+      _meta: {
+        description:
+          'ID of the tool (normalized: built-in tools keep ID, custom tools become "custom-<sha256_prefix>")',
+        optional: false,
+      },
+    },
+    tool_call_id: {
+      type: 'keyword',
+      _meta: {
+        description: 'Unique ID of this tool call invocation',
+        optional: false,
+      },
+    },
+    source: {
+      type: 'keyword',
+      _meta: {
+        description: 'Where the tool was called from (agent|user|mcp|api|unknown)',
+        optional: false,
+      },
+    },
+    model_provider: {
+      type: 'keyword',
+      _meta: {
+        description: 'LLM model provider (OpenAI|Google|Anthropic|Elastic)',
+        optional: true,
+      },
+    },
+    duration: {
+      type: 'integer',
+      _meta: {
+        description: 'Duration of the tool call in milliseconds',
+        optional: false,
+      },
+    },
+    result_types: {
+      type: 'array',
+      items: {
+        type: 'keyword',
+        _meta: {
+          description: 'Type of the tool result (resource|esql_results|error|other|...)',
+        },
+      },
+      _meta: {
+        description: 'Types of results returned by the tool call',
+        optional: false,
+      },
+    },
+  },
+};
+
+const TOOL_CALL_ERROR_EVENT: AgentBuilderTelemetryEvent = {
+  eventType: AGENT_BUILDER_EVENT_TYPES.ToolCallError,
+  schema: {
+    agent_id: {
+      type: 'keyword',
+      _meta: {
+        description:
+          'ID of the agent (normalized: built-in agents keep ID, custom agents become "custom-<sha256_prefix>")',
+        optional: false,
+      },
+    },
+    conversation_id: {
+      type: 'keyword',
+      _meta: {
+        description: 'Conversation ID',
+        optional: true,
+      },
+    },
+    tool_id: {
+      type: 'keyword',
+      _meta: {
+        description:
+          'ID of the tool (normalized: built-in tools keep ID, custom tools become "custom-<sha256_prefix>")',
+        optional: false,
+      },
+    },
+    tool_call_id: {
+      type: 'keyword',
+      _meta: {
+        description: 'Unique ID of this tool call invocation',
+        optional: false,
+      },
+    },
+    source: {
+      type: 'keyword',
+      _meta: {
+        description: 'Where the tool was called from (agent|user|mcp|api|unknown)',
+        optional: false,
+      },
+    },
+    model_provider: {
+      type: 'keyword',
+      _meta: {
+        description: 'LLM model provider (OpenAI|Google|Anthropic|Elastic)',
+        optional: true,
+      },
+    },
+    duration: {
+      type: 'integer',
+      _meta: {
+        description: 'Duration of the tool call in milliseconds',
+        optional: false,
+      },
+    },
+    error_type: {
+      type: 'keyword',
+      _meta: {
+        description: 'The type/name of the error that occurred',
+        optional: false,
+      },
+    },
+    error_message: {
+      type: 'text',
+      _meta: {
+        description: 'The error message describing what went wrong',
+        optional: false,
+      },
+    },
+  },
+};
+
 export const agentBuilderPublicEbtEvents: Array<EventTypeOpts<Record<string, unknown>>> = [
   OPT_IN_EVENT,
   OPT_OUT_EVENT,
@@ -454,4 +626,6 @@ export const agentBuilderServerEbtEvents: Array<EventTypeOpts<Record<string, unk
   TOOL_CREATED_EVENT,
   ROUND_COMPLETE_EVENT,
   ROUND_ERROR_EVENT,
+  TOOL_CALL_SUCCESS_EVENT,
+  TOOL_CALL_ERROR_EVENT,
 ];

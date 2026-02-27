@@ -174,4 +174,77 @@ export class AnalyticsService {
       this.logger.debug('Failed to report RoundError telemetry event', { error: err });
     }
   }
+
+  reportToolCallSuccess({
+    agentId,
+    conversationId,
+    toolId,
+    toolCallId,
+    source,
+    modelProvider,
+    resultTypes,
+    duration,
+  }: {
+    agentId?: string;
+    conversationId?: string;
+    toolId: string;
+    toolCallId: string;
+    source: string;
+    modelProvider?: string;
+    resultTypes: string[];
+    duration: number;
+  }): void {
+    try {
+      this.analytics.reportEvent(AGENT_BUILDER_EVENT_TYPES.ToolCallSuccess, {
+        agent_id: normalizeAgentIdForTelemetry(agentId) ?? 'unknown',
+        conversation_id: conversationId,
+        tool_id: normalizeToolIdForTelemetry(toolId),
+        tool_call_id: toolCallId,
+        source,
+        model_provider: modelProvider,
+        result_types: resultTypes,
+        duration,
+      });
+    } catch (error) {
+      this.logger.debug('Failed to report ToolCallSuccess telemetry event', { error });
+    }
+  }
+
+  reportToolCallError({
+    agentId,
+    conversationId,
+    toolId,
+    toolCallId,
+    source,
+    modelProvider,
+    errorType,
+    errorMessage,
+    duration,
+  }: {
+    agentId?: string;
+    conversationId?: string;
+    toolId: string;
+    toolCallId: string;
+    source: string;
+    modelProvider?: string;
+    errorType: string;
+    errorMessage: string;
+    duration: number;
+  }): void {
+    try {
+      this.analytics.reportEvent(AGENT_BUILDER_EVENT_TYPES.ToolCallError, {
+        agent_id: normalizeAgentIdForTelemetry(agentId) ?? 'unknown',
+        conversation_id: conversationId,
+        tool_id: normalizeToolIdForTelemetry(toolId),
+        tool_call_id: toolCallId,
+        source,
+        model_provider: modelProvider,
+        error_type: sanitizeForCounterName(errorType),
+        error_message: errorMessage.slice(0, 500),
+        duration,
+      });
+    } catch (error) {
+      this.logger.debug('Failed to report ToolCallError telemetry event', { error });
+    }
+  }
 }
