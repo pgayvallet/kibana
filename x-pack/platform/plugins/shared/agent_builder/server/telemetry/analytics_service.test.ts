@@ -275,14 +275,13 @@ describe('AnalyticsService', () => {
           tool_id: 'custom-3c9388baa67aef90',
           tool_call_id: 'tc-1',
           source: 'agent',
-          model_provider: undefined,
           result_types: ['resource', 'esql_results'],
-          duration: 150,
+          duration_ms: 150,
         }
       );
     });
 
-    it('uses "unknown" when agentId is undefined', () => {
+    it('passes undefined agent_id when agentId is undefined', () => {
       service.reportToolCallSuccess({
         toolId: 'my_custom_tool',
         toolCallId: 'tc-1',
@@ -294,7 +293,7 @@ describe('AnalyticsService', () => {
       expect(analytics.reportEvent).toHaveBeenCalledWith(
         AGENT_BUILDER_EVENT_TYPES.ToolCallSuccess,
         expect.objectContaining({
-          agent_id: 'unknown',
+          agent_id: undefined,
         })
       );
     });
@@ -336,10 +335,9 @@ describe('AnalyticsService', () => {
         tool_id: 'custom-3c9388baa67aef90',
         tool_call_id: 'tc-1',
         source: 'agent',
-        model_provider: undefined,
         error_type: 'tool_error',
         error_message: 'Something went wrong',
-        duration: 200,
+        duration_ms: 200,
       });
     });
 
@@ -364,7 +362,7 @@ describe('AnalyticsService', () => {
       );
     });
 
-    it('uses "unknown" when agentId is undefined', () => {
+    it('passes undefined agent_id when agentId is undefined', () => {
       service.reportToolCallError({
         toolId: 'tool-1',
         toolCallId: 'tc-1',
@@ -377,7 +375,7 @@ describe('AnalyticsService', () => {
       expect(analytics.reportEvent).toHaveBeenCalledWith(
         AGENT_BUILDER_EVENT_TYPES.ToolCallError,
         expect.objectContaining({
-          agent_id: 'unknown',
+          agent_id: undefined,
         })
       );
     });
