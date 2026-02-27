@@ -796,7 +796,7 @@ describe('runInternalTool - telemetry', () => {
     expect(analyticsService.reportToolCallSuccess).not.toHaveBeenCalled();
   });
 
-  it('does not let telemetry failure affect tool execution', async () => {
+  it('does not let telemetry failure affect tool execution and logs a warning', async () => {
     analyticsService.reportToolCallSuccess.mockImplementation(() => {
       throw new Error('telemetry boom');
     });
@@ -813,6 +813,9 @@ describe('runInternalTool - telemetry', () => {
 
     expect(result).toHaveProperty('results');
     expect(result.results).toHaveLength(1);
+    expect(runnerDeps.logger.warn).toHaveBeenCalledWith(
+      expect.stringContaining('Failed to report tool call telemetry')
+    );
   });
 
   it('includes the duration in the telemetry event', async () => {

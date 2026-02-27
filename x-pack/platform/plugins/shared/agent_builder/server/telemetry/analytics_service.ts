@@ -200,7 +200,7 @@ export class AnalyticsService {
         tool_call_id: toolCallId,
         source,
         result_types: resultTypes,
-        duration,
+        duration_ms: duration,
       });
     } catch (error) {
       this.logger.debug('Failed to report ToolCallSuccess telemetry event', { error });
@@ -235,7 +235,7 @@ export class AnalyticsService {
         source,
         error_type: sanitizeForCounterName(errorType),
         error_message: errorMessage.slice(0, 500),
-        duration,
+        duration_ms: duration,
       });
     } catch (error) {
       this.logger.debug('Failed to report ToolCallError telemetry event', { error });

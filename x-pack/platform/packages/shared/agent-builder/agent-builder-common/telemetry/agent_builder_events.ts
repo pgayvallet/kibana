@@ -97,7 +97,7 @@ export interface ReportToolCallSuccessParams {
   conversation_id?: string;
   model?: string;
   result_types: string[];
-  duration: number;
+  duration_ms: number;
 }
 
 export interface ReportToolCallErrorParams {
@@ -109,7 +109,7 @@ export interface ReportToolCallErrorParams {
   model?: string;
   error_type: string;
   error_message: string;
-  duration: number;
+  duration_ms: number;
 }
 
 export interface AgentBuilderTelemetryEventsMap {
@@ -520,7 +520,7 @@ const TOOL_CALL_SUCCESS_EVENT: AgentBuilderTelemetryEvent = {
         optional: true,
       },
     },
-    duration: {
+    duration_ms: {
       type: 'integer',
       _meta: {
         description: 'Duration of the tool call in milliseconds',
@@ -590,7 +590,7 @@ const TOOL_CALL_ERROR_EVENT: AgentBuilderTelemetryEvent = {
         optional: true,
       },
     },
-    duration: {
+    duration_ms: {
       type: 'integer',
       _meta: {
         description: 'Duration of the tool call in milliseconds',

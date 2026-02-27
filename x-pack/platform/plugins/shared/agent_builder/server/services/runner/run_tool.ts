@@ -323,6 +323,6 @@ const reportToolCallTelemetry = ({
       });
     }
   } catch (e) {
-    // never let telemetry failures affect tool execution
+    parentManager.deps.logger.warn(`Failed to report tool call telemetry: ${e}`);
   }
 };
