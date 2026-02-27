@@ -181,7 +181,6 @@ export class AnalyticsService {
     toolId,
     toolCallId,
     source,
-    modelProvider,
     resultTypes,
     duration,
   }: {
@@ -190,7 +189,6 @@ export class AnalyticsService {
     toolId: string;
     toolCallId: string;
     source: string;
-    modelProvider?: string;
     resultTypes: string[];
     duration: number;
   }): void {
@@ -201,7 +199,6 @@ export class AnalyticsService {
         tool_id: normalizeToolIdForTelemetry(toolId),
         tool_call_id: toolCallId,
         source,
-        model_provider: modelProvider,
         result_types: resultTypes,
         duration,
       });
@@ -216,7 +213,6 @@ export class AnalyticsService {
     toolId,
     toolCallId,
     source,
-    modelProvider,
     errorType,
     errorMessage,
     duration,
@@ -226,7 +222,6 @@ export class AnalyticsService {
     toolId: string;
     toolCallId: string;
     source: string;
-    modelProvider?: string;
     errorType: string;
     errorMessage: string;
     duration: number;
@@ -238,7 +233,6 @@ export class AnalyticsService {
         tool_id: normalizeToolIdForTelemetry(toolId),
         tool_call_id: toolCallId,
         source,
-        model_provider: modelProvider,
         error_type: sanitizeForCounterName(errorType),
         error_message: errorMessage.slice(0, 500),
         duration,

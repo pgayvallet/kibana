@@ -95,7 +95,7 @@ export interface ReportToolCallSuccessParams {
   tool_id: string;
   tool_call_id: string;
   source: string;
-  model_provider?: string;
+  model?: string;
   result_types: string[];
   duration: number;
 }
@@ -106,7 +106,7 @@ export interface ReportToolCallErrorParams {
   tool_id: string;
   tool_call_id: string;
   source: string;
-  model_provider?: string;
+  model?: string;
   error_type: string;
   error_message: string;
   duration: number;
@@ -513,10 +513,10 @@ const TOOL_CALL_SUCCESS_EVENT: AgentBuilderTelemetryEvent = {
         optional: false,
       },
     },
-    model_provider: {
+    model: {
       type: 'keyword',
       _meta: {
-        description: 'LLM model provider (OpenAI|Google|Anthropic|Elastic)',
+        description: 'The exact model used, if available',
         optional: true,
       },
     },
@@ -583,10 +583,10 @@ const TOOL_CALL_ERROR_EVENT: AgentBuilderTelemetryEvent = {
         optional: false,
       },
     },
-    model_provider: {
+    model: {
       type: 'keyword',
       _meta: {
-        description: 'LLM model provider (OpenAI|Google|Anthropic|Elastic)',
+        description: 'The exact model used, if available',
         optional: true,
       },
     },

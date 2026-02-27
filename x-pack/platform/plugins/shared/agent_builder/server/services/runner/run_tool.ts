@@ -299,7 +299,9 @@ const reportToolCallTelemetry = ({
     if (allErrors) {
       const firstError = results[0];
       const errorMessage =
-        firstError.type === ToolResultType.error ? firstError.data.message : 'Unknown error';
+        firstError.type === ToolResultType.error
+          ? (firstError.data as { message: string }).message
+          : 'Unknown error';
       analyticsService.reportToolCallError({
         agentId,
         toolId,
