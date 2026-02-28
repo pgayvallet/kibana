@@ -119,6 +119,7 @@ export const handleAgentExecution = async ({
   // Execute agent
   const agentEvents$ = executeAgent$({
     agentId,
+    executionId: execution.executionId,
     request,
     nextInput,
     capabilities,
@@ -172,6 +173,7 @@ export const handleAgentExecution = async ({
             }
             analyticsService?.reportRoundComplete({
               conversationId: effectiveConversationId,
+              executionId: execution.executionId,
               roundCount: currentRoundCount,
               agentId,
               round: event.data.round,
@@ -189,6 +191,7 @@ export const handleAgentExecution = async ({
         trackingService,
         modelProvider,
         conversationId: effectiveConversationId,
+        executionId: execution.executionId,
       })
     )
   );

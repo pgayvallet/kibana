@@ -108,12 +108,14 @@ export class AnalyticsService {
   reportRoundComplete({
     agentId,
     conversationId,
+    executionId,
     modelProvider,
     round,
     roundCount,
   }: {
     agentId: string;
     conversationId?: string;
+    executionId?: string;
     modelProvider: ModelProvider;
     round: ConversationRound;
     roundCount: number;
@@ -143,6 +145,7 @@ export class AnalyticsService {
           agent_id: normalizedAgentId ?? 'unknown',
           attachments,
           conversation_id: conversationId,
+          execution_id: executionId,
           input_tokens: round.model_usage.input_tokens,
           llm_calls: round.model_usage.llm_calls,
           message_length: round.input.message.length,
@@ -170,12 +173,14 @@ export class AnalyticsService {
   reportRoundError({
     agentId,
     conversationId,
+    executionId,
     error,
     modelProvider,
     roundId,
   }: {
     agentId: string;
     conversationId?: string;
+    executionId?: string;
     error: unknown;
     modelProvider: ModelProvider;
     roundId?: string;
@@ -187,10 +192,11 @@ export class AnalyticsService {
       this.analytics.reportEvent<ReportRoundErrorParams>(AGENT_BUILDER_EVENT_TYPES.RoundError, {
         agent_id: normalizedAgentId ?? 'unknown',
         conversation_id: conversationId,
+        execution_id: executionId,
+        round_id: roundId,
         model_provider: modelProvider,
         error_message: errorMessage,
         error_type: errorType,
-        ...(roundId ? { round_id: roundId } : {}),
       });
     } catch (err) {
       // Do not fail the request if telemetry fails
@@ -201,6 +207,7 @@ export class AnalyticsService {
   reportToolCallSuccess({
     agentId,
     conversationId,
+    executionId,
     toolId,
     toolCallId,
     source,
@@ -209,6 +216,7 @@ export class AnalyticsService {
   }: {
     agentId?: string;
     conversationId?: string;
+    executionId?: string;
     toolId: string;
     toolCallId: string;
     source: string;
@@ -221,6 +229,7 @@ export class AnalyticsService {
         {
           agent_id: normalizeAgentIdForTelemetry(agentId),
           conversation_id: conversationId,
+          execution_id: executionId,
           tool_id: normalizeToolIdForTelemetry(toolId),
           tool_call_id: toolCallId,
           source,
@@ -236,6 +245,7 @@ export class AnalyticsService {
   reportToolCallError({
     agentId,
     conversationId,
+    executionId,
     toolId,
     toolCallId,
     source,
@@ -245,6 +255,7 @@ export class AnalyticsService {
   }: {
     agentId?: string;
     conversationId?: string;
+    executionId?: string;
     toolId: string;
     toolCallId: string;
     source: string;
@@ -258,6 +269,7 @@ export class AnalyticsService {
         {
           agent_id: normalizeAgentIdForTelemetry(agentId),
           conversation_id: conversationId,
+          execution_id: executionId,
           tool_id: normalizeToolIdForTelemetry(toolId),
           tool_call_id: toolCallId,
           source,

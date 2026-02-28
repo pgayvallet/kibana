@@ -50,6 +50,7 @@ export interface ReportRoundCompleteParams {
   agent_id: string;
   attachments?: string[];
   conversation_id?: string;
+  execution_id?: string;
   input_tokens: number;
   llm_calls: number;
   message_length: number;
@@ -73,6 +74,7 @@ export interface ReportRoundErrorParams {
   error_message: string;
   model_provider?: string;
   conversation_id?: string;
+  execution_id?: string;
   agent_id: string;
   round_id?: string;
 }
@@ -98,6 +100,7 @@ export interface ReportToolCallSuccessParams {
   source: string;
   agent_id?: string;
   conversation_id?: string;
+  execution_id?: string;
   model?: string;
   result_types: string[];
   duration_ms: number;
@@ -109,6 +112,7 @@ export interface ReportToolCallErrorParams {
   source: string;
   agent_id?: string;
   conversation_id?: string;
+  execution_id?: string;
   model?: string;
   error_type: string;
   error_message: string;
@@ -324,6 +328,13 @@ const ROUND_COMPLETE_EVENT: AgentBuilderTelemetryEvent = {
         optional: true,
       },
     },
+    execution_id: {
+      type: 'keyword',
+      _meta: {
+        description: 'Execution ID',
+        optional: true,
+      },
+    },
     input_tokens: {
       type: 'integer',
       _meta: {
@@ -483,6 +494,13 @@ const ROUND_ERROR_SCHEMA: AgentBuilderTelemetryEvent['schema'] = {
       optional: true,
     },
   },
+  execution_id: {
+    type: 'keyword',
+    _meta: {
+      description: 'Execution ID',
+      optional: true,
+    },
+  },
   agent_id: {
     type: 'keyword',
     _meta: {
@@ -512,6 +530,13 @@ const TOOL_CALL_SUCCESS_EVENT: AgentBuilderTelemetryEvent = {
       type: 'keyword',
       _meta: {
         description: 'Conversation ID',
+        optional: true,
+      },
+    },
+    execution_id: {
+      type: 'keyword',
+      _meta: {
+        description: 'Agent execution ID',
         optional: true,
       },
     },
@@ -582,6 +607,13 @@ const TOOL_CALL_ERROR_EVENT: AgentBuilderTelemetryEvent = {
       type: 'keyword',
       _meta: {
         description: 'Conversation ID',
+        optional: true,
+      },
+    },
+    execution_id: {
+      type: 'keyword',
+      _meta: {
+        description: 'Agent execution ID',
         optional: true,
       },
     },

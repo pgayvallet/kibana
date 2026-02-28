@@ -19,6 +19,7 @@ import type {
 import type {
   ScopedRunnerRunToolsParams,
   ScopedRunnerRunInternalToolParams,
+  RunAgentStackEntry,
 } from '@kbn/agent-builder-server/runner';
 import { generateFakeToolCallId } from '@kbn/agent-builder-genai-utils/langchain';
 import { createErrorResult } from '@kbn/agent-builder-server';
@@ -79,7 +80,12 @@ export const runInternalTool = async <TParams = Record<string, unknown>>({
     source = 'unknown',
   } = toolExecutionParams;
 
-  const context = forkContextForToolRun({ parentContext: parentManager.context, toolId: tool.id });
+  const context = forkContextForToolRun({
+    parentContext: parentManager.context,
+    toolId: tool.id,
+    toolCallId,
+    source,
+  });
   const manager = parentManager.createChild(context);
   const { resultStore, promptManager } = manager.deps;
 
@@ -268,9 +274,8 @@ export const createToolHandlerContext = async <TParams = Record<string, unknown>
   };
 };
 
-const getAgentIdFromContext = (manager: RunnerManager): string | undefined => {
-  const agentEntry = [...manager.context.stack].reverse().find((entry) => entry.type === 'agent');
-  return agentEntry?.type === 'agent' ? agentEntry.agentId : undefined;
+const getAgentExecutionContext = (manager: RunnerManager): RunAgentStackEntry | undefined => {
+  return [...manager.context.stack].reverse().find((entry) => entry.type === 'agent');
 };
 
 const reportToolCallTelemetry = ({
@@ -294,7 +299,7 @@ const reportToolCallTelemetry = ({
   }
 
   try {
-    const agentId = getAgentIdFromContext(parentManager);
+    const agentContext = getAgentExecutionContext(parentManager);
     const allErrors = results.length > 0 && results.every((r) => r.type === ToolResultType.error);
 
     if (allErrors) {
@@ -304,7 +309,9 @@ const reportToolCallTelemetry = ({
           ? (firstError.data as { message: string }).message
           : 'Unknown error';
       analyticsService.reportToolCallError({
-        agentId,
+        agentId: agentContext?.agentId,
+        conversationId: agentContext?.conversationId,
+        executionId: agentContext?.executionId,
         toolId,
         toolCallId,
         source,
@@ -314,7 +321,9 @@ const reportToolCallTelemetry = ({
       });
     } else {
       analyticsService.reportToolCallSuccess({
-        agentId,
+        agentId: agentContext?.agentId,
+        conversationId: agentContext?.conversationId,
+        executionId: agentContext?.executionId,
         toolId,
         toolCallId,
         source,
