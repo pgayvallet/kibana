@@ -59,9 +59,12 @@ export interface ReportRoundCompleteParams {
   round_id: string;
   response_length: number;
   round_number: number;
+  round_status: string;
   started_at: string;
   time_to_first_token: number;
   time_to_last_token: number;
+  tool_calls: number;
+  tool_call_errors: number;
   tools_invoked: string[];
 }
 
@@ -384,6 +387,13 @@ const ROUND_COMPLETE_EVENT: AgentBuilderTelemetryEvent = {
         optional: false,
       },
     },
+    round_status: {
+      type: 'keyword',
+      _meta: {
+        description: 'Status the round was in after current execution',
+        optional: false,
+      },
+    },
     started_at: {
       type: 'date',
       _meta: {
@@ -417,6 +427,20 @@ const ROUND_COMPLETE_EVENT: AgentBuilderTelemetryEvent = {
       _meta: {
         description:
           'Tool IDs invoked in the round (normalized: built-in tools keep ID, custom tools become "custom-<sha256_prefix>"). Intentionally includes duplicates (one entry per tool call) so counts per tool can be computed downstream by aggregating over this array.',
+        optional: false,
+      },
+    },
+    tool_calls: {
+      type: 'integer',
+      _meta: {
+        description: 'Total number of tool calls performed in this round',
+        optional: false,
+      },
+    },
+    tool_call_errors: {
+      type: 'integer',
+      _meta: {
+        description: 'Number of tool erroring tool calls performed in this round',
         optional: false,
       },
     },

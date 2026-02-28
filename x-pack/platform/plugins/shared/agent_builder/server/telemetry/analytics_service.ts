@@ -12,6 +12,7 @@ import {
   agentBuilderServerEbtEvents,
   type ConversationRound,
   ConversationRoundStepType,
+  ToolResultType,
   type ToolSelection,
   type ToolType,
 } from '@kbn/agent-builder-common';
@@ -119,13 +120,20 @@ export class AnalyticsService {
   }): void {
     try {
       const normalizedAgentId = normalizeAgentIdForTelemetry(agentId);
+
+      const toolCallSteps =
+        round.steps?.filter((step) => step.type === ConversationRoundStepType.toolCall) ?? [];
+
       // NOTE: `tools_invoked` is intentionally an array that can include duplicates (one per tool
       // call). This allows downstream telemetry analysis to compute per-tool invocation counts by
       // aggregating over the array values.
       const toolsInvoked =
-        round.steps
-          ?.filter((step) => step.type === ConversationRoundStepType.toolCall)
-          .map((step) => normalizeToolIdForTelemetry(step.tool_id)) ?? [];
+        toolCallSteps.map((step) => normalizeToolIdForTelemetry(step.tool_id)) ?? [];
+
+      const toolCallErrors = toolCallSteps.filter(({ results }) => {
+        return results.length > 0 && results.every((r) => r.type === ToolResultType.error);
+      });
+
       const attachments = round.input.attachments?.length
         ? round.input.attachments.map((a) => a.type || 'unknown')
         : undefined;
@@ -142,12 +150,15 @@ export class AnalyticsService {
           model_provider: modelProvider,
           output_tokens: round.model_usage.output_tokens,
           round_id: round.id,
+          round_status: round.status,
           response_length: round.response.message.length,
           round_number: roundCount,
           started_at: round.started_at,
           time_to_first_token: round.time_to_first_token,
           time_to_last_token: round.time_to_last_token,
           tools_invoked: toolsInvoked,
+          tool_calls: toolCallSteps.length,
+          tool_call_errors: toolCallErrors.length,
         }
       );
     } catch (error) {
