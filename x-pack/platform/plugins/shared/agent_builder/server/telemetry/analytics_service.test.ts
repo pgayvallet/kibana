@@ -89,7 +89,9 @@ describe('AnalyticsService', () => {
 
       expect(analytics.reportEvent).toHaveBeenCalledWith(AGENT_BUILDER_EVENT_TYPES.RoundComplete, {
         agent_id: agentBuilderDefaultAgentId,
+        attachments: undefined,
         conversation_id: 'conversation-1',
+        execution_id: undefined,
         input_tokens: 4,
         llm_calls: 3,
         message_length: 2,
@@ -97,11 +99,14 @@ describe('AnalyticsService', () => {
         model_provider: ModelProvider.OpenAI,
         output_tokens: 5,
         round_id: 'round-1',
+        round_status: ConversationRoundStatus.completed,
         response_length: round.response.message.length,
         round_number: 2,
         started_at: '2025-01-01T00:00:00.000Z',
         time_to_first_token: 1,
         time_to_last_token: 2,
+        tool_calls: 1,
+        tool_call_errors: 0,
         tools_invoked: ['custom-3c9388baa67aef90'],
       });
     });
@@ -117,7 +122,9 @@ describe('AnalyticsService', () => {
 
       expect(analytics.reportEvent).toHaveBeenCalledWith(AGENT_BUILDER_EVENT_TYPES.RoundComplete, {
         agent_id: 'custom-da3031a511e7fadf',
+        attachments: undefined,
         conversation_id: 'conversation-1',
+        execution_id: undefined,
         input_tokens: 4,
         llm_calls: 3,
         message_length: 2,
@@ -125,11 +132,14 @@ describe('AnalyticsService', () => {
         model_provider: ModelProvider.OpenAI,
         output_tokens: 5,
         round_id: 'round-1',
+        round_status: ConversationRoundStatus.completed,
         response_length: round.response.message.length,
         round_number: 2,
         started_at: '2025-01-01T00:00:00.000Z',
         time_to_first_token: 1,
         time_to_last_token: 2,
+        tool_calls: 1,
+        tool_call_errors: 0,
         tools_invoked: ['custom-3c9388baa67aef90'],
       });
     });
