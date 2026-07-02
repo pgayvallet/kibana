@@ -82,6 +82,17 @@ On success the tool result content is JSON-serialized to stdout. A single result
 print an array of data objects. If the tool reports an error, its message goes to stderr and the command
 exits non-zero. Stdout and stderr are truncated past a token safeguard for the model — the truncated flag will be set in the result.
 
+## Limitations of the bash environment
+
+### jq
+
+Not native JQ, only a subset of standard jq is supported.
+
+Most notable limitations:
+- No arg injection: --arg/--argjson aren't supported. Embed the value in the filter (jq ".x==\\"$VAL\\"") or \`export X=val\` and read \`$ENV.X\`.
+- No -R/--raw-input: use awk/sed/grep for non-JSON text.
+- If a flag or function errors as unsupported, adapt — don't retry it.
+
 ## Guidelines
 
 - Prefer bash tool for composition, piping, and writing files. Prefer other VFS tools (read_file, list_files...) when they are sufficient for the task.
