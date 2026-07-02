@@ -7,6 +7,7 @@
 
 import { z } from '@kbn/zod/v4';
 import { BashService } from './bash_service';
+import type { ExecToolFn } from './exec_tool_command';
 import { FilesystemService } from '../../filesystem/filesystem_service';
 import { WorkspaceVolume } from '../../filesystem/workspace_volume';
 import { MemoryVolume } from '../../runner/store/memory_volume';
@@ -35,15 +36,17 @@ const makeFixture = async (opts?: { workspaceId?: string; generateId?: () => str
 const makeBash = (
   fsService: FilesystemService,
   workspaceVolume: WorkspaceVolume,
-  extra?: Partial<ConstructorParameters<typeof BashService>[0]>
+  extra?: { execToolFn?: ExecToolFn; timeoutMs?: number }
 ) =>
   new BashService({
     filesystemService: fsService,
     workspaceVolume,
-    execToolFn: jest.fn(),
-    resolveToolId: (id) => id,
-    getToolSchema: () => z.object({}),
-    ...extra,
+    toolAccess: {
+      execToolFn: extra?.execToolFn ?? jest.fn(),
+      resolveToolId: (id) => id,
+      getToolSchema: () => z.object({}),
+    },
+    timeoutMs: extra?.timeoutMs,
   });
 
 describe('BashService', () => {
