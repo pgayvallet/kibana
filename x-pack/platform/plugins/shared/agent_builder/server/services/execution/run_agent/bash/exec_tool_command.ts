@@ -9,10 +9,12 @@ import type { CustomCommand } from 'just-bash';
 import { defineCommand } from 'just-bash';
 import type { ZodObject } from '@kbn/zod/v4';
 import type { MaybePromise } from '@kbn/utility-types';
+import type { RunToolReturn } from '@kbn/agent-builder-server/runner';
 import { parseExecToolArgs } from './parse_args';
 import { coerceParamValue } from './param_coercion';
+import { formatToolReturn } from './format_tool_return';
 
-export type ExecToolFn = (toolId: string, args: unknown) => Promise<unknown>;
+export type ExecToolFn = (toolId: string, args: unknown) => Promise<RunToolReturn>;
 export type ResolveToolIdFn = (toolId: string) => string;
 export type GetToolSchemaFn = (resolvedToolId: string) => MaybePromise<ZodObject<any>>;
 
@@ -82,7 +84,8 @@ export const createExecToolCommand = ({
 
     try {
       const result = await execToolFn(resolvedToolId, finalArgs);
-      return ok(result);
+      const formatted = formatToolReturn(result);
+      return formatted.ok ? ok(formatted.value) : fail(`exec_tool: ${formatted.error}`);
     } catch (err) {
       return fail(errMessage(err));
     }

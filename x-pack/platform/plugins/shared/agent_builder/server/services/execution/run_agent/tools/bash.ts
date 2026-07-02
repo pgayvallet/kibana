@@ -78,8 +78,9 @@ A bare boolean flag (e.g. --verbose) is treated as true. When both are given, in
 
 Both sanitized tool names (as listed in your tools) and underscore-namespaced internal IDs are accepted.
 
-Output is JSON-serialized to stdout on success; the command exit code is returned.
-Stdout and stderr are truncated past a token safeguard for the model — the truncated flag will be set in the result.
+On success the tool result content is JSON-serialized to stdout. A single result prints its data object; multiple results
+print an array of data objects. If the tool reports an error, its message goes to stderr and the command
+exits non-zero. Stdout and stderr are truncated past a token safeguard for the model — the truncated flag will be set in the result.
 
 ## Guidelines
 

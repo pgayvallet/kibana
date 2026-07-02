@@ -29,16 +29,24 @@ const runScript = async (
 };
 
 describe('exec_tool command', () => {
-  it('runs the tool and prints JSON to stdout on success', async () => {
-    const fn: ExecToolFn = jest
-      .fn()
-      .mockResolvedValue({ results: [{ type: 'other', data: { ok: true } }] });
+  it('prints the unwrapped result data to stdout on success', async () => {
+    const fn: ExecToolFn = jest.fn().mockResolvedValue({
+      results: [{ tool_result_id: 'r1', type: 'other', data: { ok: true } }],
+    });
     const result = await runScript('exec_tool foo --args=\'{"x":1}\'', fn);
     expect(result.exitCode).toBe(0);
-    expect(result.stdout.trim()).toBe(
-      JSON.stringify({ results: [{ type: 'other', data: { ok: true } }] })
-    );
+    expect(result.stdout.trim()).toBe(JSON.stringify({ ok: true }));
     expect(fn).toHaveBeenCalledWith('foo', { x: 1 });
+  });
+
+  it('exits 1 with stderr when the tool returns an error result', async () => {
+    const fn: ExecToolFn = jest.fn().mockResolvedValue({
+      results: [{ tool_result_id: 'e1', type: 'error', data: { message: 'kaboom' } }],
+    });
+    const result = await runScript('exec_tool foo', fn);
+    expect(result.exitCode).toBe(1);
+    expect(result.stdout).toBe('');
+    expect(result.stderr).toMatch(/kaboom/);
   });
 
   it('runs the tool with no args when --args is omitted', async () => {

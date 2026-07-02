@@ -96,8 +96,8 @@ describe('BashService', () => {
 
   it('returns exit_code 124 on wall-clock timeout', async () => {
     const { fsService, workspaceVolume } = await makeFixture();
-    const execToolFn = jest.fn(
-      () => new Promise((resolve) => setTimeout(() => resolve({ ok: true }), 500))
+    const execToolFn: ExecToolFn = jest.fn(
+      () => new Promise((resolve) => setTimeout(() => resolve({ results: [] }), 500))
     );
     const bash = makeBash(fsService, workspaceVolume, { timeoutMs: 50, execToolFn });
     const result = await bash.exec('exec_tool slow.tool');
@@ -107,7 +107,9 @@ describe('BashService', () => {
 
   it('exec_tool inside the script invokes the supplied callback', async () => {
     const { fsService, workspaceVolume } = await makeFixture();
-    const execToolFn = jest.fn().mockResolvedValue({ ok: true });
+    const execToolFn = jest.fn().mockResolvedValue({
+      results: [{ tool_result_id: 'r1', type: 'other', data: { ok: true } }],
+    });
     const bash = makeBash(fsService, workspaceVolume, { execToolFn });
     const result = await bash.exec('exec_tool platform.foo --args=\'{"a":1}\' | cat');
     expect(result.exit_code).toBe(0);
