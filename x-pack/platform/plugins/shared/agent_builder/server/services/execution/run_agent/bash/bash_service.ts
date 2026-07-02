@@ -9,7 +9,12 @@ import { Bash } from 'just-bash';
 import type { BashExecResult, IBashService } from '@kbn/agent-builder-server/runner';
 import type { FilesystemService } from '../../filesystem/filesystem_service';
 import type { WorkspaceVolume } from '../../filesystem/workspace_volume';
-import { createExecToolCommand, type ExecToolFn, type ResolveToolIdFn } from './exec_tool_command';
+import {
+  createExecToolCommand,
+  type ExecToolFn,
+  type ResolveToolIdFn,
+  type GetToolSchemaFn,
+} from './exec_tool_command';
 import { truncateBashOutput } from './output_truncation';
 import { ALLOWED_BASH_COMMANDS } from './allowed_commands';
 
@@ -68,6 +73,7 @@ export interface BashServiceDeps {
   workspaceVolume: WorkspaceVolume;
   execToolFn: ExecToolFn;
   resolveToolId: ResolveToolIdFn;
+  getToolSchema: GetToolSchemaFn;
   abortSignal?: AbortSignal;
   timeoutMs?: number;
 }
@@ -105,6 +111,7 @@ export class BashService implements IBashService {
     const execToolCommand = createExecToolCommand({
       execToolFn: this.deps.execToolFn,
       resolveToolId: this.deps.resolveToolId,
+      getToolSchema: this.deps.getToolSchema,
     });
 
     const bash = new Bash({

@@ -71,6 +71,13 @@ export const createFilesystemServices = async ({
         source: 'agent',
       });
     },
+    getToolSchema: async (toolId) => {
+      const tool = toolManager.getExecutable(toolId);
+      if (!tool) {
+        throw new Error(`tool '${toolId}' is not available`);
+      }
+      return tool.getSchema();
+    },
     resolveToolId: (id) => toolManager.getToolIdMapping().get(id) ?? id,
     abortSignal: manager.deps.abortSignal,
   });

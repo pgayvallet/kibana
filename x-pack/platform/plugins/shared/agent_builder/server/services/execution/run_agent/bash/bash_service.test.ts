@@ -5,6 +5,7 @@
  * 2.0.
  */
 
+import { z } from '@kbn/zod/v4';
 import { BashService } from './bash_service';
 import { FilesystemService } from '../../filesystem/filesystem_service';
 import { WorkspaceVolume } from '../../filesystem/workspace_volume';
@@ -41,6 +42,7 @@ const makeBash = (
     workspaceVolume,
     execToolFn: jest.fn(),
     resolveToolId: (id) => id,
+    getToolSchema: () => z.object({}),
     ...extra,
   });
 
