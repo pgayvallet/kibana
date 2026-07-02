@@ -16,10 +16,6 @@ export type ExecToolFn = (toolId: string, args: unknown) => Promise<unknown>;
 export type ResolveToolIdFn = (toolId: string) => string;
 export type GetToolSchemaFn = (resolvedToolId: string) => MaybePromise<ZodObject<any>>;
 
-/**
- * The tool-registry capabilities `exec_tool` needs. Grouped because all three
- * are backed by the same tool manager (see `createFilesystemServices`).
- */
 export interface BashToolAccess {
   execToolFn: ExecToolFn;
   resolveToolId: ResolveToolIdFn;
@@ -34,7 +30,7 @@ export const createExecToolCommand = ({
   return defineCommand('exec_tool', async (argv) => {
     const parsed = parseExecToolArgs(argv);
     if (parsed.error) {
-      return { stdout: '', stderr: `${parsed.error}\n`, exitCode: 1 };
+      return fail(parsed.error);
     }
     const { toolId, argsRaw, params } = parsed;
     const resolvedToolId = resolveToolId(toolId!);
@@ -45,11 +41,7 @@ export const createExecToolCommand = ({
       try {
         argsValue = JSON.parse(argsRaw);
       } catch (err) {
-        return {
-          stdout: '',
-          stderr: `exec_tool: invalid JSON for --args: ${(err as Error).message}\n`,
-          exitCode: 1,
-        };
+        return fail(`exec_tool: invalid JSON for --args: ${(err as Error).message}`);
       }
     }
 
@@ -63,23 +55,16 @@ export const createExecToolCommand = ({
         argsRaw !== undefined &&
         (typeof argsValue !== 'object' || argsValue === null || Array.isArray(argsValue))
       ) {
-        return {
-          stdout: '',
-          stderr:
-            'exec_tool: --args must be a JSON object when combined with individual --params\n',
-          exitCode: 1,
-        };
+        return fail(
+          'exec_tool: --args must be a JSON object when combined with individual --params'
+        );
       }
 
       let schema: ZodObject<any>;
       try {
         schema = await getToolSchema(resolvedToolId);
       } catch (err) {
-        return {
-          stdout: '',
-          stderr: `exec_tool: ${(err as Error).message ?? String(err)}\n`,
-          exitCode: 1,
-        };
+        return fail(errMessage(err));
       }
 
       const base = (argsValue as Record<string, unknown>) ?? {};
@@ -88,11 +73,7 @@ export const createExecToolCommand = ({
         try {
           coerced[key] = coerceParamValue(schema, key, value);
         } catch (err) {
-          return {
-            stdout: '',
-            stderr: `exec_tool: ${(err as Error).message}\n`,
-            exitCode: 1,
-          };
+          return fail(errMessage(err));
         }
       }
 
@@ -101,13 +82,23 @@ export const createExecToolCommand = ({
 
     try {
       const result = await execToolFn(resolvedToolId, finalArgs);
-      return { stdout: `${JSON.stringify(result)}\n`, stderr: '', exitCode: 0 };
+      return ok(result);
     } catch (err) {
-      return {
-        stdout: '',
-        stderr: `exec_tool: ${(err as Error).message ?? String(err)}\n`,
-        exitCode: 1,
-      };
+      return fail(errMessage(err));
     }
   });
 };
+
+const fail = (message: string, exitCode: number = 1) => ({
+  stdout: '',
+  stderr: `${message}\n`,
+  exitCode,
+});
+
+const ok = (result: unknown) => ({
+  stdout: `${JSON.stringify(result)}\n`,
+  stderr: '',
+  exitCode: 0,
+});
+
+const errMessage = (err: unknown) => `exec_tool: ${(err as Error).message ?? String(err)}`;
