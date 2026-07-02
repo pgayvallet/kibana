@@ -73,10 +73,8 @@ single JSON object via --args, or as individual flags, or both:
   exec_tool platform_core_generate_esql --query="FROM logs | LIMIT 10" | jq
   exec_tool platform_core_generate_esql --args='{"query":"..."}' --index=logs-*
 
-Individual --param flags accept both "--param value" and "--param=value" forms and are
-coerced to the parameter's declared type (numbers, booleans, and JSON arrays/objects).
-A bare boolean flag (e.g. --verbose) is treated as true. When both are given, individual
---param flags override matching keys in --args.
+Individual --param flags accept both "--param value" and "--param=value" forms and are coerced to the parameter's declared type (numbers, booleans, and JSON arrays/objects).
+A bare boolean flag (e.g. --verbose) is treated as true. When both are given, individual --param flags override matching keys in --args.
 
 Both sanitized tool names (as listed in your tools) and underscore-namespaced internal IDs are accepted.
 
