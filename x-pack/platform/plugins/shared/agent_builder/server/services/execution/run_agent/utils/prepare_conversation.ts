@@ -9,6 +9,7 @@ import type {
   CompactionSummary,
   ConversationAction,
   ConversationRound,
+  ConversationRoundAuthor,
   ConverseInput,
   RoundInput,
   MetadataFieldValue,
@@ -149,6 +150,7 @@ const prepareForAction = ({
 export const prepareConversation = async ({
   previousRounds,
   nextInput,
+  nextInputAuthor,
   context,
   action,
   metadata,
@@ -156,6 +158,7 @@ export const prepareConversation = async ({
 }: {
   previousRounds: ConversationRound[];
   nextInput: ConverseInput;
+  nextInputAuthor?: ConversationRoundAuthor;
   context: AgentHandlerContext;
   action?: ConversationAction;
   metadata?: Record<string, MetadataFieldValue>;
@@ -208,7 +211,9 @@ export const prepareConversation = async ({
         attachment_refs: attachmentRefs,
       },
     };
-    processedRounds.push(prepareRound({ round: strippedRound, attachmentStateManager }));
+    processedRounds.push(
+      prepareRound({ round: strippedRound, author: round.author, attachmentStateManager })
+    );
   }
 
   attachmentStateManager.clearAccessTracking();
@@ -232,6 +237,7 @@ export const prepareConversation = async ({
   };
   const processedNextInput = prepareRoundInput({
     input: strippedNextInput,
+    author: nextInputAuthor,
     attachmentStateManager,
   });
 
@@ -270,22 +276,26 @@ export const prepareConversation = async ({
 
 const prepareRound = ({
   round,
+  author,
   attachmentStateManager,
 }: {
   round: ConversationRound;
+  author?: ConversationRoundAuthor;
   attachmentStateManager: AttachmentStateManager;
 }): ProcessedConversationRound => {
   return {
     ...round,
-    input: prepareRoundInput({ input: round.input, attachmentStateManager }),
+    input: prepareRoundInput({ input: round.input, author, attachmentStateManager }),
   };
 };
 
 const prepareRoundInput = ({
   input,
+  author,
   attachmentStateManager,
 }: {
   input: RoundInput | ConverseInput;
+  author?: ConversationRoundAuthor;
   attachmentStateManager: AttachmentStateManager;
 }): ProcessedRoundInput => {
   const inputAttachments: Partial<ProcessedRoundInput> = {};
@@ -309,6 +319,7 @@ const prepareRoundInput = ({
     // attachments are always stripped before this function. this is here to satisfy the type
     // for legacy compatibility
     attachments: [],
+    ...(author !== undefined ? { author } : {}),
     ...inputAttachments,
   };
 };
